@@ -1,0 +1,485 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChevronLeft, ChevronRight, Download, Save, FileText, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import JudgeRubricForm from './JudgeRubricForm';
+import PerPageRubricForm from './PerPageRubricForm';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+
+// Set up the worker for react-pdf - use local worker to avoid CORS
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
+
+interface PDFViewerProps {
+  scriptId: string;
+  scriptTitle: string;
+  fileUrl: string;
+  reviewId?: string;
+  scriptAmount?: number;
+  tierName?: string;
+  pageCount?: number;
+  onClose: () => void;
+}
+
+interface PageNote {
+  page_number: number;
+  note_content: string;
+}
+
+const PDFViewer: React.FC<PDFViewerProps> = ({
+  scriptId,
+  scriptTitle,
+  fileUrl,
+  reviewId,
+  scriptAmount,
+  tierName,
+  pageCount,
+  onClose
+}) => {
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [scale, setScale] = useState(1.0);
+  const [pageNotes, setPageNotes] = useState<{ [key: number]: string }>({});
+  const [currentNote, setCurrentNote] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [pdfUrl, setPdfUrl] = useState<string>('');
+  const [pdfError, setPdfError] = useState<string>('');
+  const [containerWidth, setContainerWidth] = useState<number>(800);
+  const { toast } = useToast();
+
+  // Validate and process the file URL
+  useEffect(() => {
+    const validateAndSetPdfUrl = async () => {
+      setLoading(true);
+      setPdfError('');
+      
+      // Check if fileUrl is a valid URL
+      if (!fileUrl) {
+        setPdfError('No file URL provided');
+        setLoading(false);
+        return;
+      }
+      
+      // Check if it's a placeholder URL
+      if (fileUrl.includes('example.com') || fileUrl === 'https://example.com/test.pdf') {
+        console.log('Placeholder URL detected, using sample PDF');
+        // Use a sample PDF for testing
+        setPdfUrl('https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf');
+        toast({
+          title: "Using Sample PDF",
+          description: "This script has a test URL. Loading a sample PDF for demonstration.",
+        });
+      } else if (fileUrl.startsWith('https://zknmzaowomihtrtqleon.supabase.co/storage/')) {
+        // It's a Supabase storage URL, use it directly
+        setPdfUrl(fileUrl);
+      } else if (fileUrl.startsWith('http')) {
+        // It's some other URL, try to use it
+        setPdfUrl(fileUrl);
+      } else {
+        // Invalid URL format, use sample PDF
+        setPdfUrl('https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf');
+        toast({
+          title: "Invalid File URL",
+          description: "Using a sample PDF for demonstration.",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    validateAndSetPdfUrl();
+  }, [fileUrl]);
+
+  // Calculate container width based on viewport
+  useEffect(() => {
+    const calculateWidth = () => {
+      // Account for notes panel (384px) and some padding
+      const availableWidth = window.innerWidth - 400;
+      setContainerWidth(Math.min(availableWidth * 0.9, 1200));
+    };
+    
+    calculateWidth();
+    window.addEventListener('resize', calculateWidth);
+    return () => window.removeEventListener('resize', calculateWidth);
+  }, []);
+
+  // Load existing notes when component mounts
+  useEffect(() => {
+    if (reviewId) {
+      loadExistingNotes();
+    }
+  }, [reviewId]);
+
+  // Update current note when page changes
+  useEffect(() => {
+    setCurrentNote(pageNotes[pageNumber] || '');
+  }, [pageNumber, pageNotes]);
+
+  const loadExistingNotes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('script_page_notes')
+        .select('page_number, note_content')
+        .eq('script_review_id', reviewId);
+
+      if (error) throw error;
+
+      const notesMap: { [key: number]: string } = {};
+      data?.forEach(note => {
+        notesMap[note.page_number] = note.note_content || '';
+      });
+      setPageNotes(notesMap);
+    } catch (error) {
+      console.error('Error loading notes:', error);
+    }
+  };
+
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+    setLoading(false);
+  };
+
+  const saveNoteForPage = async () => {
+    if (!reviewId) {
+      toast({
+        title: "Error",
+        description: "No review ID found. Please start a review first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Check if note already exists for this page
+      const { data: existingNote } = await supabase
+        .from('script_page_notes')
+        .select('id')
+        .eq('script_review_id', reviewId)
+        .eq('page_number', pageNumber)
+        .single();
+
+      if (existingNote) {
+        // Update existing note
+        const { error } = await supabase
+          .from('script_page_notes')
+          .update({ note_content: currentNote })
+          .eq('id', existingNote.id);
+
+        if (error) throw error;
+      } else if (currentNote.trim()) {
+        // Insert new note only if there's content
+        const { error } = await supabase
+          .from('script_page_notes')
+          .insert({
+            script_review_id: reviewId,
+            page_number: pageNumber,
+            note_content: currentNote
+          });
+
+        if (error) throw error;
+      }
+
+      // Update local state
+      setPageNotes(prev => ({
+        ...prev,
+        [pageNumber]: currentNote
+      }));
+
+      toast({
+        title: "Note saved",
+        description: `Note for page ${pageNumber} has been saved`,
+      });
+    } catch (error) {
+      console.error('Error saving note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save note",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    // Save current note before changing page
+    if (currentNote !== pageNotes[pageNumber]) {
+      saveNoteForPage();
+    }
+    setPageNumber(newPage);
+  };
+
+  const downloadScript = async () => {
+    try {
+      // Get a signed URL for download
+      const { data, error } = await supabase.storage
+        .from('scripts')
+        .createSignedUrl(fileUrl, 3600); // 1 hour expiry
+
+      if (error) throw error;
+
+      // Open in new tab for download
+      window.open(data.signedUrl, '_blank');
+      
+      toast({
+        title: "Download started",
+        description: "Your script is being downloaded",
+      });
+    } catch (error) {
+      console.error('Error downloading script:', error);
+      toast({
+        title: "Error",
+        description: "Failed to download script",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Auto-save note when user stops typing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (currentNote !== pageNotes[pageNumber] && currentNote !== '') {
+        saveNoteForPage();
+      }
+    }, 2000); // Auto-save after 2 seconds of no typing
+
+    return () => clearTimeout(timeoutId);
+  }, [currentNote]);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-portfolio-black overflow-y-auto">
+      <div className="min-h-full">
+        {/* PDF and Notes Container */}
+        <div className="flex" style={{ minHeight: '100vh' }}>
+          {/* PDF Viewer Section */}
+          <div className="flex-1 flex flex-col bg-gray-900 min-w-0">
+        {/* Header */}
+        <div className="bg-portfolio-dark border-b border-portfolio-gold/20 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <h2 className="text-xl font-semibold text-portfolio-gold">{scriptTitle}</h2>
+              <span className="text-portfolio-white/60">
+                Page {pageNumber} of {numPages}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setScale(scale - 0.1)}
+                disabled={scale <= 0.5}
+                className="text-portfolio-white border-portfolio-gold/30"
+              >
+                Zoom -
+              </Button>
+              <span className="text-portfolio-white px-2">{Math.round(scale * 100)}%</span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setScale(scale + 0.1)}
+                disabled={scale >= 2}
+                className="text-portfolio-white border-portfolio-gold/30"
+              >
+                Zoom +
+              </Button>
+              <Button
+                size="sm"
+                onClick={downloadScript}
+                className="bg-portfolio-gold text-portfolio-dark font-semibold hover:bg-portfolio-gold/80"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onClose}
+                className="text-portfolio-gold border-portfolio-gold hover:bg-portfolio-gold/10"
+              >
+                Submit Review
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* PDF Document */}
+        <div className="flex-1 overflow-hidden p-4">
+          {loading && !pdfError && (
+            <div className="w-full h-full flex justify-center items-center">
+              <div className="flex flex-col items-center">
+                <Loader2 className="w-8 h-8 animate-spin text-portfolio-gold" />
+                <p className="text-portfolio-white mt-2">Loading PDF...</p>
+              </div>
+            </div>
+          )}
+          {pdfError && (
+            <div className="w-full h-full flex justify-center items-center">
+              <div className="flex flex-col items-center text-portfolio-white">
+                <p className="text-red-500 mb-4">{pdfError}</p>
+                <p>Unable to load the PDF file.</p>
+              </div>
+            </div>
+          )}
+          {pdfUrl && !pdfError && (
+            <div className="w-full h-full overflow-auto">
+              <div className="flex justify-center p-4">
+                <div style={{ maxWidth: '100%', overflow: 'visible' }}>
+                  <Document
+                    file={pdfUrl}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    onLoadError={(error) => {
+                      console.error('PDF Load Error:', error);
+                      setPdfError('Failed to load PDF file. Please try again.');
+                      setLoading(false);
+                    }}
+                    className="flex justify-center"
+                  >
+                    <Page 
+                      pageNumber={pageNumber} 
+                      scale={scale}
+                      className="shadow-2xl"
+                      renderTextLayer={true}
+                      renderAnnotationLayer={true}
+                      width={containerWidth * scale}
+                    />
+                  </Document>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <div className="bg-portfolio-dark border-t border-portfolio-gold/20 p-4">
+          <div className="flex items-center justify-center space-x-4">
+            <Button
+              onClick={() => handlePageChange(Math.max(1, pageNumber - 1))}
+              disabled={pageNumber <= 1}
+              className="bg-portfolio-gold text-portfolio-dark font-semibold hover:bg-portfolio-gold/80 disabled:opacity-50"
+            >
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Previous
+            </Button>
+            
+            <div className="flex items-center space-x-2">
+              {Array.from({ length: Math.min(5, numPages || 0) }, (_, i) => {
+                const page = Math.max(1, Math.min(pageNumber - 2 + i, (numPages || 1) - 4)) + i;
+                if (page > (numPages || 0)) return null;
+                return (
+                  <Button
+                    key={page}
+                    size="sm"
+                    variant={page === pageNumber ? "default" : "outline"}
+                    onClick={() => handlePageChange(page)}
+                    className={page === pageNumber 
+                      ? "bg-portfolio-gold text-portfolio-dark font-semibold" 
+                      : "text-portfolio-white border-portfolio-gold/30"}
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+            </div>
+
+            <Button
+              onClick={() => handlePageChange(Math.min(numPages || 1, pageNumber + 1))}
+              disabled={pageNumber >= (numPages || 1)}
+              className="bg-portfolio-gold text-portfolio-dark font-semibold hover:bg-portfolio-gold/80 disabled:opacity-50"
+            >
+              Next
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+          {/* Notes Section */}
+          <div className="w-96 bg-portfolio-dark border-l border-portfolio-gold/20 flex flex-col flex-shrink-0">
+            <Card className="bg-transparent border-none h-full flex flex-col">
+          <CardHeader className="border-b border-portfolio-gold/20">
+            <CardTitle className="text-portfolio-gold flex items-center">
+              <FileText className="w-5 h-5 mr-2" />
+              Notes for Page {pageNumber}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col p-4">
+            <Textarea
+              value={currentNote}
+              onChange={(e) => setCurrentNote(e.target.value)}
+              placeholder="Add your notes for this page here. There's no character limit - write as much as you need."
+              className="flex-1 bg-portfolio-black border-portfolio-gold/30 text-portfolio-white resize-none"
+            />
+            <div className="mt-4 flex justify-between items-center">
+              <div className="text-sm text-portfolio-white/60">
+                {currentNote.length > 0 && `${currentNote.length} characters`}
+              </div>
+              <Button
+                onClick={saveNoteForPage}
+                disabled={saving}
+                className="bg-portfolio-gold text-portfolio-dark font-semibold hover:bg-portfolio-gold/80"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Note
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            {/* Indicator for pages with notes */}
+            <div className="mt-4 pt-4 border-t border-portfolio-gold/20">
+              <p className="text-sm text-portfolio-white/60 mb-2">Pages with notes:</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.keys(pageNotes).map(page => (
+                  <Button
+                    key={page}
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handlePageChange(parseInt(page))}
+                    className="text-portfolio-gold border-portfolio-gold/30 hover:bg-portfolio-gold/10"
+                  >
+                    Page {page}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+          </div>
+        </div>
+        
+        {/* Judge's Rubric Form - Below PDF Viewer */}
+        {/* Use per-page rubric for $1000 tier, regular rubric for others */}
+        {/* Check if amount is 1000 (dollars) or 100000 (cents) */}
+        {reviewId && (
+          (scriptAmount === 1000 || scriptAmount === 100000) ? (
+            <PerPageRubricForm 
+              scriptTitle={scriptTitle}
+              reviewId={reviewId}
+              currentPageNumber={pageNumber}
+              totalPages={numPages || 1}
+            />
+          ) : (
+            <JudgeRubricForm 
+              scriptTitle={scriptTitle}
+              reviewId={reviewId}
+            />
+          )
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PDFViewer;
