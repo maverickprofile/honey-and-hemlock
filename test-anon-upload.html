@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Anonymous Script Upload</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Test Script Upload</h1>
+    <button onclick="testUpload()">Test Upload</button>
+    <div id="result"></div>
+
+    <script>
+        const supabaseUrl = 'https://zknmzaowomihtrtqleon.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inprbm16YW93b21paHRydHFsZW9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3MTA2MTgsImV4cCI6MjA2NzI4NjYxOH0.CyAQrLWbXQDoRgBAxk6jgpFXYANUSm1UqwkB8Stz7DU';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        async function testUpload() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                console.log('Testing script insertion...');
+                
+                // Test direct insertion without any auth
+                const { data, error } = await supabase
+                    .from('scripts')
+                    .insert({
+                        title: 'Test Anonymous Upload',
+                        author_name: 'Test User',
+                        author_email: 'test@example.com',
+                        status: 'pending',
+                        payment_status: 'paid',
+                        file_url: 'https://example.com/test.pdf',
+                        file_name: 'test.pdf'
+                    })
+                    .select();
+
+                if (error) {
+                    console.error('Error:', error);
+                    resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}<br>Details: ${error.details}<br>Hint: ${error.hint}</p>`;
+                } else {
+                    console.log('Success:', data);
+                    resultDiv.innerHTML = `<p style="color: green;">Success! Script uploaded with ID: ${data[0].id}</p>`;
+                }
+            } catch (e) {
+                console.error('Exception:', e);
+                resultDiv.innerHTML = `<p style="color: red;">Exception: ${e.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
