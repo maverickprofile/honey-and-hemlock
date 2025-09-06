@@ -470,11 +470,11 @@ Honey & Hemlock Productions
                 placeholder="Search scripts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-[#232323] text-portfolio-white border-gray-600 w-64"
+                className="bg-gray-700 text-portfolio-white border-gray-500 placeholder-gray-400 focus:border-portfolio-gold focus:ring-portfolio-gold w-64"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px] bg-[#232323] text-portfolio-white">
+              <SelectTrigger className="w-[150px] bg-gray-700 text-portfolio-white border-gray-500 hover:bg-gray-600">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -487,7 +487,7 @@ Honey & Hemlock Productions
               </SelectContent>
             </Select>
             <Select value={tierFilter} onValueChange={setTierFilter}>
-              <SelectTrigger className="w-[150px] bg-[#232323] text-portfolio-white">
+              <SelectTrigger className="w-[150px] bg-gray-700 text-portfolio-white border-gray-500 hover:bg-gray-600">
                 <SelectValue placeholder="Tier" />
               </SelectTrigger>
               <SelectContent>
@@ -498,7 +498,7 @@ Honey & Hemlock Productions
                 <SelectItem value="Premium Script Notes">Premium Script Notes</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="bg-[#FFD62F] text-black hover:bg-[#FFD62F]/90">
+            <Button className="bg-portfolio-black text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300">
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
@@ -556,7 +556,7 @@ Honey & Hemlock Productions
                         value={script.assigned_judge_id || "unassigned"}
                         onValueChange={(value) => handleAssignScript(script.id, value === "unassigned" ? null : value)}
                       >
-                        <SelectTrigger className="w-[150px] bg-[#232323] text-portfolio-white">
+                        <SelectTrigger className="w-[150px] bg-gray-700 text-portfolio-white border-gray-500 hover:bg-gray-600">
                           <SelectValue placeholder="Assign to..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -576,7 +576,7 @@ Honey & Hemlock Productions
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          className="bg-[#FFD62F] text-black hover:bg-[#FFD62F]/90"
+                          className="bg-portfolio-black text-portfolio-gold border border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black transition-all duration-300"
                           onClick={() => handleViewScript(script)}
                           title="View Script Details"
                         >
@@ -586,7 +586,7 @@ Honey & Hemlock Productions
                         {(script.status === 'reviewed' || script.status === 'approved' || script.status === 'declined') && (
                           <Button
                             size="sm"
-                            className="bg-portfolio-gold text-portfolio-dark hover:bg-portfolio-gold/80"
+                            className="bg-portfolio-white text-portfolio-black border border-portfolio-white hover:bg-portfolio-black hover:text-portfolio-gold hover:border-portfolio-gold transition-all duration-300"
                             onClick={() => handleViewReview(script)}
                             title="View Review"
                           >

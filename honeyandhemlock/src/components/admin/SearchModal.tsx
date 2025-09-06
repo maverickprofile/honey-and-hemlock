@@ -147,7 +147,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onNavigate }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search scripts, contractors, users by name or email..."
-              className="pl-10 bg-[#232323] border-gray-600 text-portfolio-white"
+              className="pl-10 bg-gray-700 border-gray-500 text-portfolio-white placeholder-gray-400 focus:border-portfolio-gold focus:ring-portfolio-gold"
               autoFocus
             />
             {searchQuery && (
@@ -176,7 +176,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onNavigate }
               {searchResults.map((result) => (
                 <button
                   key={`${result.type}-${result.id}`}
-                  className="w-full p-3 bg-[#232323] hover:bg-[#323232] rounded-lg text-left transition-colors"
+                  className="w-full p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-left transition-all duration-300 border border-transparent hover:border-portfolio-gold/30"
                   onClick={() => handleResultClick(result)}
                 >
                   <div className="flex items-center space-x-3">

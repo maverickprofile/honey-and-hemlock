@@ -206,10 +206,10 @@ const ContractorsSectionSimple = () => {
           <div className="flex justify-between items-center">
             <CardTitle className="text-portfolio-white">Contractor Management</CardTitle>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px] bg-[#232323] border-gray-600 text-portfolio-white">
+              <SelectTrigger className="w-[180px] bg-gray-700 border-gray-500 text-portfolio-white hover:bg-gray-600">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent className="bg-[#232323] border-gray-600">
+              <SelectContent className="bg-gray-700 border-gray-500">
                 <SelectItem value="all">All Contractors</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>

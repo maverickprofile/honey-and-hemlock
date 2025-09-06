@@ -134,13 +134,13 @@ const SettingsSection = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="pricing" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 bg-[#232323] border-gray-700">
               <TabsTrigger value="pricing">Pricing</TabsTrigger>
               <TabsTrigger value="email">Email</TabsTrigger>
             </TabsList>
 
             <TabsContent value="pricing" className="space-y-4">
-              <Card className="bg-[#232323] border-gray-600">
+              <Card className="bg-[#232323] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-portfolio-white flex items-center">
                     <DollarSign className="w-4 h-4 mr-2" />
@@ -155,7 +155,8 @@ const SettingsSection = () => {
                         type="number"
                         value={settings.tier_1_price || ''}
                         onChange={(e) => updateSetting('tier_1_price', e.target.value)}
-                        className="bg-[#282828] text-portfolio-white border-gray-600"
+                        className="bg-[#1a1a1a] text-portfolio-white border-gray-700 placeholder-gray-500 focus:border-portfolio-gold focus:ring-portfolio-gold"
+                        placeholder="Enter tier 1 price"
                       />
                     </div>
                     <div>
@@ -164,7 +165,8 @@ const SettingsSection = () => {
                         type="number"
                         value={settings.tier_2_price || ''}
                         onChange={(e) => updateSetting('tier_2_price', e.target.value)}
-                        className="bg-[#282828] text-portfolio-white border-gray-600"
+                        className="bg-[#1a1a1a] text-portfolio-white border-gray-700 placeholder-gray-500 focus:border-portfolio-gold focus:ring-portfolio-gold"
+                        placeholder="Enter tier 2 price"
                       />
                     </div>
                     <div>
@@ -173,7 +175,8 @@ const SettingsSection = () => {
                         type="number"
                         value={settings.tier_3_price || ''}
                         onChange={(e) => updateSetting('tier_3_price', e.target.value)}
-                        className="bg-[#282828] text-portfolio-white border-gray-600"
+                        className="bg-[#1a1a1a] text-portfolio-white border-gray-700 placeholder-gray-500 focus:border-portfolio-gold focus:ring-portfolio-gold"
+                        placeholder="Enter tier 3 price"
                       />
                     </div>
                   </div>
@@ -183,7 +186,8 @@ const SettingsSection = () => {
                       type="number"
                       value={settings.additional_page_fee || ''}
                       onChange={(e) => updateSetting('additional_page_fee', e.target.value)}
-                      className="bg-[#282828] text-portfolio-white border-gray-600"
+                      className="bg-gray-700 text-portfolio-white border-gray-600 placeholder-gray-400 focus:border-portfolio-gold focus:ring-portfolio-gold"
+                      placeholder="Enter additional page fee"
                     />
                   </div>
                   <div>
@@ -191,8 +195,9 @@ const SettingsSection = () => {
                     <Textarea
                       value={settings.tier_1_description || ''}
                       onChange={(e) => updateSetting('tier_1_description', e.target.value)}
-                      className="bg-[#282828] text-portfolio-white border-gray-600"
+                      className="bg-gray-700 text-portfolio-white border-gray-600 placeholder-gray-400 focus:border-portfolio-gold focus:ring-portfolio-gold"
                       rows={3}
+                      placeholder="Enter tier 1 description"
                     />
                   </div>
                   <div>
@@ -200,8 +205,9 @@ const SettingsSection = () => {
                     <Textarea
                       value={settings.tier_2_description || ''}
                       onChange={(e) => updateSetting('tier_2_description', e.target.value)}
-                      className="bg-[#282828] text-portfolio-white border-gray-600"
+                      className="bg-gray-700 text-portfolio-white border-gray-600 placeholder-gray-400 focus:border-portfolio-gold focus:ring-portfolio-gold"
                       rows={3}
+                      placeholder="Enter tier 2 description"
                     />
                   </div>
                   <div>
@@ -209,8 +215,9 @@ const SettingsSection = () => {
                     <Textarea
                       value={settings.tier_3_description || ''}
                       onChange={(e) => updateSetting('tier_3_description', e.target.value)}
-                      className="bg-[#282828] text-portfolio-white border-gray-600"
+                      className="bg-gray-700 text-portfolio-white border-gray-600 placeholder-gray-400 focus:border-portfolio-gold focus:ring-portfolio-gold"
                       rows={3}
+                      placeholder="Enter tier 3 description"
                     />
                   </div>
                 </CardContent>
@@ -220,7 +227,7 @@ const SettingsSection = () => {
 
             <TabsContent value="email" className="space-y-4">
               {/* SMTP Configuration */}
-              <Card className="bg-[#232323] border-gray-600">
+              <Card className="bg-[#232323] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-portfolio-white flex items-center">
                     <Mail className="w-4 h-4 mr-2" />
@@ -235,7 +242,7 @@ const SettingsSection = () => {
                         placeholder="smtp.gmail.com"
                         value={settings.smtp_host || ''}
                         onChange={(e) => updateSetting('smtp_host', e.target.value)}
-                        className="bg-[#282828] text-portfolio-white border-gray-600"
+                        className="bg-[#1a1a1a] text-portfolio-white border-gray-700 placeholder-gray-500 focus:border-portfolio-gold focus:ring-portfolio-gold"
                       />
                     </div>
                     <div>
@@ -244,7 +251,7 @@ const SettingsSection = () => {
                         placeholder="587"
                         value={settings.smtp_port || ''}
                         onChange={(e) => updateSetting('smtp_port', e.target.value)}
-                        className="bg-[#282828] text-portfolio-white border-gray-600"
+                        className="bg-[#1a1a1a] text-portfolio-white border-gray-700 placeholder-gray-500 focus:border-portfolio-gold focus:ring-portfolio-gold"
                       />
                     </div>
                   </div>
@@ -254,7 +261,7 @@ const SettingsSection = () => {
                       placeholder="your-email@gmail.com"
                       value={settings.smtp_username || ''}
                       onChange={(e) => updateSetting('smtp_username', e.target.value)}
-                      className="bg-[#282828] text-portfolio-white border-gray-600"
+                      className="bg-gray-700 text-portfolio-white border-gray-600 placeholder-gray-400 focus:border-portfolio-gold focus:ring-portfolio-gold"
                     />
                   </div>
                   <div>
@@ -267,7 +274,7 @@ const SettingsSection = () => {
                       placeholder="••••••••••••"
                       value={settings.smtp_password || ''}
                       onChange={(e) => updateSetting('smtp_password', e.target.value)}
-                      className="bg-[#282828] text-portfolio-white border-gray-600"
+                      className="bg-gray-700 text-portfolio-white border-gray-600 placeholder-gray-400 focus:border-portfolio-gold focus:ring-portfolio-gold"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -278,7 +285,7 @@ const SettingsSection = () => {
                         placeholder="noreply@honeyandhemlock.com"
                         value={settings.smtp_from_email || ''}
                         onChange={(e) => updateSetting('smtp_from_email', e.target.value)}
-                        className="bg-[#282828] text-portfolio-white border-gray-600"
+                        className="bg-[#1a1a1a] text-portfolio-white border-gray-700 placeholder-gray-500 focus:border-portfolio-gold focus:ring-portfolio-gold"
                       />
                     </div>
                     <div>
@@ -287,7 +294,7 @@ const SettingsSection = () => {
                         placeholder="Honey & Hemlock Productions"
                         value={settings.smtp_from_name || ''}
                         onChange={(e) => updateSetting('smtp_from_name', e.target.value)}
-                        className="bg-[#282828] text-portfolio-white border-gray-600"
+                        className="bg-[#1a1a1a] text-portfolio-white border-gray-700 placeholder-gray-500 focus:border-portfolio-gold focus:ring-portfolio-gold"
                       />
                     </div>
                   </div>
@@ -299,7 +306,7 @@ const SettingsSection = () => {
                     <Label className="text-portfolio-white">Use TLS/SSL Encryption</Label>
                   </div>
                   <Button 
-                    className="bg-portfolio-gold text-black hover:bg-portfolio-gold/90"
+                    className="bg-portfolio-black text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300"
                     onClick={async () => {
                       toast({
                         title: "Testing Connection",
@@ -321,7 +328,7 @@ const SettingsSection = () => {
               </Card>
 
               {/* Email Notification Settings */}
-              <Card className="bg-[#232323] border-gray-600">
+              <Card className="bg-[#232323] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-portfolio-white">Notification Settings</CardTitle>
                 </CardHeader>
@@ -333,7 +340,7 @@ const SettingsSection = () => {
                       placeholder="admin@honeyandhemlock.com"
                       value={settings.support_email || ''}
                       onChange={(e) => updateSetting('support_email', e.target.value)}
-                      className="bg-[#282828] text-portfolio-white border-gray-600"
+                      className="bg-gray-700 text-portfolio-white border-gray-600 placeholder-gray-400 focus:border-portfolio-gold focus:ring-portfolio-gold"
                     />
                   </div>
                   <div className="space-y-3">

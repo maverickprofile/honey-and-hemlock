@@ -104,7 +104,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-700 ${
+    <div className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-700 ${
       showForm ? 'opacity-100' : 'opacity-0'
     }`}>
       
@@ -113,10 +113,12 @@ const ContactForm: React.FC<ContactFormProps> = ({ isOpen, onClose }) => {
         <div className="absolute inset-0 backdrop-blur-md"></div>
       </div>
 
-      {/* Main Glass Container */}
-      <div className={`relative w-full max-w-lg transform transition-all duration-800 delay-100 ${
-        showForm ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'
-      }`}>
+      {/* Scrollable Container */}
+      <div className="relative w-full h-full overflow-y-auto py-8 px-4 flex items-center justify-center">
+        {/* Main Glass Container */}
+        <div className={`relative w-full max-w-lg transform transition-all duration-800 delay-100 my-auto ${
+          showForm ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'
+        }`}>
         
         {/* Success State */}
         {isSuccess && (
@@ -133,15 +135,15 @@ const ContactForm: React.FC<ContactFormProps> = ({ isOpen, onClose }) => {
           </div>
         )}
 
-        {/* Liquid Glass Form Container */}
-        <div className="liquid-glass rounded-2xl p-8 relative overflow-hidden">
+          {/* Liquid Glass Form Container */}
+          <div className="liquid-glass rounded-2xl p-6 sm:p-8 relative overflow-hidden">
           
           {/* Subtle Inner Glow */}
           <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-b from-white/5 to-transparent rounded-t-2xl pointer-events-none"></div>
           
           {/* Header */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-special-elite text-portfolio-gold mb-2">
+          <div className="text-center mb-6">
+            <h2 className="text-xl sm:text-2xl font-special-elite text-portfolio-gold mb-2">
               Contact Us
             </h2>
             <div className="w-16 h-px bg-portfolio-gold/40 mx-auto"></div>
@@ -155,7 +157,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ isOpen, onClose }) => {
             <X className="w-5 h-5" />
           </button>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             
             {/* Name Field */}
             <div className="space-y-2">
@@ -266,7 +268,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ isOpen, onClose }) => {
                 onFocus={() => setFocusedField('message')}
                 onBlur={() => setFocusedField(null)}
                 required
-                rows={4}
+                rows={3}
                 className={`liquid-field transition-all duration-300 resize-none ${
                   focusedField === 'message' ? 'liquid-field-focus' : ''
                 }`}
@@ -295,6 +297,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ isOpen, onClose }) => {
               )}
             </Button>
           </form>
+          </div>
         </div>
       </div>
     </div>

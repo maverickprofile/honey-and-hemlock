@@ -19,6 +19,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ContractorDashboard from "./pages/ContractorDashboard";
 import JudgeLogin from "./pages/JudgeLogin";
 import ContractorsPanel from "./pages/ContractorsPanel";
+import ScriptReview from "./pages/ScriptReview";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/judge-login" element={<JudgeLogin />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/contractor-dashboard" element={<ContractorDashboard />} />
+            <Route path="/script-review/:scriptId" element={<ScriptReview />} />
             <Route path="/contractors" element={<ContractorsPanel />} />
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />

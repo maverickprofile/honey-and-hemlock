@@ -101,7 +101,7 @@ const Films = () => {
                         e.stopPropagation();
                         openTrailer(film);
                       }}
-                      className="bg-portfolio-gold text-portfolio-black hover:bg-portfolio-gold/90 p-4 rounded-full"
+                      className="bg-portfolio-white text-portfolio-black hover:bg-portfolio-gold hover:text-portfolio-black p-4 rounded-full transition-all duration-300"
                     >
                       <Play className="w-8 h-8" fill="currentColor" />
                     </Button>
@@ -115,7 +115,7 @@ const Films = () => {
                   <div className="flex gap-3">
                     <Button
                       onClick={() => openTrailer(film)}
-                      className="bg-portfolio-gold text-portfolio-black hover:bg-portfolio-gold/90 flex-1"
+                      className="bg-portfolio-black text-portfolio-gold border border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black flex-1 font-semibold transition-all duration-300"
                     >
                       <Play className="w-4 h-4 mr-2" />
                       Watch Trailer
@@ -123,7 +123,7 @@ const Films = () => {
                     <Button
                       onClick={() => navigate(`/film-gallery/${film.slug}`)}
                       variant="outline"
-                      className="border-portfolio-gold text-portfolio-gold hover:bg-portfolio-gold/10 flex-1"
+                      className="bg-portfolio-white text-portfolio-black border border-portfolio-white hover:bg-portfolio-black hover:text-portfolio-gold hover:border-portfolio-gold flex-1 font-semibold transition-all duration-300"
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       View Gallery
@@ -161,7 +161,7 @@ const Films = () => {
             <Button
               onClick={() => navigate(`/film-gallery/${selectedFilm?.slug}`)}
               variant="outline"
-              className="border-portfolio-gold text-portfolio-gold hover:bg-portfolio-gold/10"
+              className="bg-portfolio-black text-portfolio-gold border border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               View Full Gallery
@@ -169,7 +169,7 @@ const Films = () => {
             <Button
               onClick={closeTrailer}
               variant="outline"
-              className="border-portfolio-gold/50 text-portfolio-white hover:bg-portfolio-gold/10"
+              className="bg-portfolio-white text-portfolio-black border border-portfolio-white hover:bg-portfolio-black hover:text-portfolio-white hover:border-portfolio-white font-semibold transition-all duration-300"
             >
               <X className="w-4 h-4 mr-2" />
               Close

@@ -98,7 +98,7 @@ const AdminLogin = () => {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-portfolio-gold text-black hover:bg-portfolio-gold/90"
+                className="w-full bg-portfolio-black text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300"
                 disabled={isLoading}
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
@@ -112,7 +112,7 @@ const AdminLogin = () => {
             <div className="text-center space-y-4">
               <p className="text-portfolio-white/80">Contractor?</p>
               <Link to="/judge">
-                <Button variant="outline" className="w-full border-portfolio-gold text-portfolio-gold hover:bg-portfolio-gold hover:text-black">
+                <Button variant="outline" className="w-full bg-portfolio-white text-portfolio-black border-2 border-portfolio-white hover:bg-portfolio-black hover:text-portfolio-gold hover:border-portfolio-gold font-semibold transition-all duration-300">
                   Contractor Login
                 </Button>
               </Link>

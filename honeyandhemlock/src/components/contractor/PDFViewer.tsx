@@ -273,7 +273,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                 variant="outline"
                 onClick={() => setScale(scale - 0.1)}
                 disabled={scale <= 0.5}
-                className="text-portfolio-white border-portfolio-gold/30"
+                className="bg-portfolio-black text-portfolio-white border border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black transition-all duration-300"
               >
                 Zoom -
               </Button>
@@ -283,14 +283,14 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                 variant="outline"
                 onClick={() => setScale(scale + 0.1)}
                 disabled={scale >= 2}
-                className="text-portfolio-white border-portfolio-gold/30"
+                className="bg-portfolio-black text-portfolio-white border border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black transition-all duration-300"
               >
                 Zoom +
               </Button>
               <Button
                 size="sm"
                 onClick={downloadScript}
-                className="bg-portfolio-gold text-portfolio-dark font-semibold hover:bg-portfolio-gold/80"
+                className="bg-portfolio-black text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Download
@@ -299,7 +299,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                 size="sm"
                 variant="outline"
                 onClick={onClose}
-                className="text-portfolio-gold border-portfolio-gold hover:bg-portfolio-gold/10"
+                className="bg-portfolio-white text-portfolio-black border-2 border-portfolio-white hover:bg-portfolio-black hover:text-portfolio-gold hover:border-portfolio-gold font-semibold transition-all duration-300"
               >
                 Submit Review
               </Button>
@@ -360,7 +360,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             <Button
               onClick={() => handlePageChange(Math.max(1, pageNumber - 1))}
               disabled={pageNumber <= 1}
-              className="bg-portfolio-gold text-portfolio-dark font-semibold hover:bg-portfolio-gold/80 disabled:opacity-50"
+              className="bg-portfolio-black text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300 disabled:opacity-50 disabled:hover:bg-portfolio-black disabled:hover:text-portfolio-gold"
             >
               <ChevronLeft className="w-4 h-4 mr-2" />
               Previous
@@ -377,8 +377,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                     variant={page === pageNumber ? "default" : "outline"}
                     onClick={() => handlePageChange(page)}
                     className={page === pageNumber 
-                      ? "bg-portfolio-gold text-portfolio-dark font-semibold" 
-                      : "text-portfolio-white border-portfolio-gold/30"}
+                      ? "bg-portfolio-gold text-portfolio-black font-semibold border-2 border-portfolio-gold" 
+                      : "bg-portfolio-black text-portfolio-white border border-portfolio-gold/50 hover:bg-portfolio-gold hover:text-portfolio-black transition-all duration-300"}
                   >
                     {page}
                   </Button>
@@ -389,7 +389,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             <Button
               onClick={() => handlePageChange(Math.min(numPages || 1, pageNumber + 1))}
               disabled={pageNumber >= (numPages || 1)}
-              className="bg-portfolio-gold text-portfolio-dark font-semibold hover:bg-portfolio-gold/80 disabled:opacity-50"
+              className="bg-portfolio-black text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300 disabled:opacity-50 disabled:hover:bg-portfolio-black disabled:hover:text-portfolio-gold"
             >
               Next
               <ChevronRight className="w-4 h-4 ml-2" />
@@ -421,7 +421,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
               <Button
                 onClick={saveNoteForPage}
                 disabled={saving}
-                className="bg-portfolio-gold text-portfolio-dark font-semibold hover:bg-portfolio-gold/80"
+                className="bg-portfolio-black text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300"
               >
                 {saving ? (
                   <>
@@ -447,7 +447,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                     size="sm"
                     variant="outline"
                     onClick={() => handlePageChange(parseInt(page))}
-                    className="text-portfolio-gold border-portfolio-gold/30 hover:bg-portfolio-gold/10"
+                    className="bg-portfolio-black text-portfolio-gold border border-portfolio-gold/50 hover:bg-portfolio-gold hover:text-portfolio-black transition-all duration-300"
                   >
                     Page {page}
                   </Button>

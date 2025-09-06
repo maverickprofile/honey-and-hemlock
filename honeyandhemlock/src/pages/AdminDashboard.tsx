@@ -336,10 +336,10 @@ const AdminDashboard = () => {
               <li key={item.id}>
                 <button
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-300 ${
                     activeTab === item.id
-                      ? 'bg-[#FFD62F] text-black'
-                      : 'text-gray-300 hover:bg-gray-700'
+                      ? 'bg-portfolio-gold text-black font-semibold'
+                      : 'text-gray-300 hover:bg-gray-700 hover:text-portfolio-white'
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
@@ -353,7 +353,7 @@ const AdminDashboard = () => {
         {/* Logout Button */}
         <Button
           onClick={handleLogout}
-          className="w-full bg-red-600 hover:bg-red-700 text-portfolio-white flex items-center justify-center space-x-2"
+          className="w-full bg-portfolio-black text-red-500 border-2 border-red-500 hover:bg-red-600 hover:text-white hover:border-red-600 font-semibold transition-all duration-300 flex items-center justify-center space-x-2"
         >
           <LogOut className="w-4 h-4" />
           <span>Logout</span>
@@ -369,7 +369,7 @@ const AdminDashboard = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="text-black hover:bg-black/10"
+              className="text-black hover:bg-black/20 transition-all duration-300"
               onClick={() => setIsSearchOpen(true)}
             >
               <Search className="w-5 h-5" />
