@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
+import { Check, Download } from 'lucide-react';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { downloadDemoScript } from '@/utils/createDemoScript';
 
 interface PricingTier {
   id: string;
@@ -164,6 +165,21 @@ const PricingPage = () => {
         <div className="text-center px-4">
           <p className="text-portfolio-white/80 text-lg font-special-elite">
             90-120 pages: Additional $5 per page
+          </p>
+        </div>
+
+        {/* Demo Script Download Button - For Testing Only */}
+        <div className="text-center px-4 mt-8">
+          <Button
+            onClick={downloadDemoScript}
+            variant="outline"
+            className="border-portfolio-gold text-portfolio-gold bg-transparent hover:bg-portfolio-gold hover:text-black font-semibold transition-all duration-300"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download Demo Script (For Testing)
+          </Button>
+          <p className="text-portfolio-white/60 text-sm mt-2">
+            Use this demo script to test the upload functionality
           </p>
         </div>
       </div>
