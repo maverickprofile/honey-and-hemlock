@@ -58,12 +58,45 @@ const ScriptReview = () => {
 
       setScript(scriptData);
 
+      // Get the judge record for the current user
+      let judgeId = null;
+      const { data: judgeData } = await supabase
+        .from('judges')
+        .select('id')
+        .eq('email', user?.email)
+        .single();
+
+      if (judgeData) {
+        judgeId = judgeData.id;
+      } else {
+        // Try by user_id if email doesn't work
+        const { data: judgeByUserId } = await supabase
+          .from('judges')
+          .select('id')
+          .eq('user_id', user?.id)
+          .single();
+        
+        if (judgeByUserId) {
+          judgeId = judgeByUserId.id;
+        }
+      }
+
+      if (!judgeId) {
+        toast({
+          title: "Error",
+          description: "You are not registered as a judge/contractor.",
+          variant: "destructive"
+        });
+        navigate('/contractor-dashboard');
+        return;
+      }
+
       // Check if a review already exists for this script and judge
       const { data: existingReview, error: reviewError } = await supabase
         .from('script_reviews')
         .select('*')
         .eq('script_id', scriptId)
-        .eq('judge_id', user?.id)
+        .eq('judge_id', judgeId)
         .single();
 
       if (existingReview) {
@@ -74,7 +107,7 @@ const ScriptReview = () => {
           .from('script_reviews')
           .insert({
             script_id: scriptId,
-            judge_id: user?.id,
+            judge_id: judgeId,
             status: 'in_progress'
           })
           .select()
@@ -116,24 +149,89 @@ const ScriptReview = () => {
 
     setSubmitting(true);
     try {
-      // Update review status to completed
-      const { error: updateError } = await supabase
+      // First, get the current review data to check if rubric is filled
+      const { data: reviewData, error: fetchError } = await supabase
         .from('script_reviews')
-        .update({
-          status: 'completed',
-          submitted_at: new Date().toISOString()
-        })
-        .eq('id', reviewId);
+        .select('*')
+        .eq('id', reviewId)
+        .single();
 
-      if (updateError) throw updateError;
+      if (fetchError) throw fetchError;
 
-      // Update script status to reviewed
-      const { error: scriptError } = await supabase
-        .from('scripts')
-        .update({ status: 'reviewed' })
-        .eq('id', scriptId);
+      // Check if essential fields are filled
+      if (!reviewData.title_response || !reviewData.plot_rating || !reviewData.characters_rating) {
+        toast({
+          title: "Incomplete Review",
+          description: "Please complete all required rubric fields before submitting.",
+          variant: "destructive"
+        });
+        setSubmitting(false);
+        setShowSubmitDialog(false);
+        return;
+      }
 
-      if (scriptError) throw scriptError;
+      // Calculate overall recommendation based on average ratings
+      const ratings = [
+        reviewData.plot_rating,
+        reviewData.characters_rating,
+        reviewData.concept_originality_rating,
+        reviewData.structure_rating,
+        reviewData.dialogue_rating,
+        reviewData.format_pacing_rating,
+        reviewData.theme_rating,
+        reviewData.catharsis_rating
+      ].filter(r => r !== null);
+
+      const avgRating = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+      const recommendation = avgRating >= 3.5 ? 'approved' : 'declined';
+
+      // Compile all notes into feedback
+      const feedback = [
+        reviewData.plot_notes && `Plot: ${reviewData.plot_notes}`,
+        reviewData.character_notes && `Characters: ${reviewData.character_notes}`,
+        reviewData.concept_originality_notes && `Concept/Originality: ${reviewData.concept_originality_notes}`,
+        reviewData.structure_notes && `Structure: ${reviewData.structure_notes}`,
+        reviewData.dialogue_notes && `Dialogue: ${reviewData.dialogue_notes}`,
+        reviewData.format_pacing_notes && `Format/Pacing: ${reviewData.format_pacing_notes}`,
+        reviewData.theme_tone_notes && `Theme/Tone: ${reviewData.theme_tone_notes}`,
+        reviewData.catharsis_notes && `Catharsis: ${reviewData.catharsis_notes}`,
+        reviewData.production_budget_notes && `Production Budget: ${reviewData.production_budget_notes}`
+      ].filter(Boolean).join('\n\n');
+
+      // Use the RPC function to submit the review (bypasses RLS and users table issues)
+      const { data: submitResult, error: submitError } = await supabase
+        .rpc('submit_script_review', {
+          p_review_id: reviewId,
+          p_recommendation: recommendation,
+          p_feedback: feedback,
+          p_overall_notes: `Title Response: ${reviewData.title_response}\n\nAverage Rating: ${avgRating.toFixed(1)}/5`
+        });
+
+      if (submitError) {
+        console.error('RPC submit error:', submitError);
+        
+        // Fallback to direct updates if RPC fails
+        const { error: updateError } = await supabase
+          .from('script_reviews')
+          .update({
+            status: 'completed',
+            submitted_at: new Date().toISOString(),
+            recommendation,
+            feedback,
+            overall_notes: `Title Response: ${reviewData.title_response}\n\nAverage Rating: ${avgRating.toFixed(1)}/5`
+          })
+          .eq('id', reviewId);
+
+        if (updateError) throw updateError;
+
+        // Update script status separately
+        const { error: scriptError } = await supabase
+          .from('scripts')
+          .update({ status: recommendation })
+          .eq('id', scriptId);
+
+        if (scriptError) throw scriptError;
+      }
 
       toast({
         title: "Review Submitted",

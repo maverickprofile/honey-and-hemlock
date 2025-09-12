@@ -158,22 +158,67 @@ const ScriptsSection = () => {
 
   const handleAssignScript = async (scriptId: string, judgeId: string) => {
     try {
-      const { error } = await supabase
+      console.log('Assigning script:', scriptId, 'to judge:', judgeId);
+      
+      // Get contractor name for feedback
+      const contractor = contractors.find(c => c.id === judgeId);
+      const contractorName = contractor?.name || 'Unknown';
+      
+      // First, let's check if the script exists
+      const { data: scriptCheck, error: checkError } = await supabase
         .from('scripts')
-        .update({ 
-          assigned_judge_id: judgeId,
-          status: judgeId ? 'assigned' : 'pending'
-        })
-        .eq('id', scriptId);
+        .select('id, title')
+        .eq('id', scriptId)
+        .single();
+      
+      if (checkError) {
+        console.error('Script not found:', checkError);
+        throw new Error('Script not found');
+      }
+      
+      console.log('Script found:', scriptCheck);
+      
+      // Use the RPC function directly since we have RLS issues
+      console.log('Using RPC function to assign script...');
+      const { data: rpcResult, error: rpcError } = await supabase
+        .rpc('assign_script_to_judge', {
+          p_script_id: scriptId,
+          p_judge_id: judgeId || null
+        });
+      
+      if (rpcError) {
+        console.error('RPC error:', rpcError);
+        // Fallback to direct update
+        console.log('Falling back to direct update...');
+        const { error } = await supabase
+          .from('scripts')
+          .update({ 
+            assigned_judge_id: judgeId || null,
+            status: judgeId ? 'assigned' : 'pending'
+          })
+          .eq('id', scriptId);
+        
+        if (error) {
+          console.error('Direct update also failed:', error);
+          throw error;
+        }
+      } else {
+        console.log('RPC assignment result:', rpcResult);
+      }
 
-      if (error) throw error;
+      console.log('Assignment completed successfully');
 
       toast({
         title: "Success",
-        description: judgeId ? "Script assigned successfully" : "Assignment removed",
+        description: judgeId 
+          ? `Script assigned to ${contractorName}`
+          : "Assignment removed",
       });
 
-      fetchScripts();
+      // Refresh the scripts list to show updated assignment
+      setTimeout(() => {
+        fetchScripts();
+      }, 500);
     } catch (error: any) {
       console.error('Error assigning script:', error);
       toast({
@@ -773,11 +818,11 @@ Honey & Hemlock Productions
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm text-portfolio-gold">Script Information</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div><strong>Title:</strong> {selectedReview.script.title}</div>
-                  <div><strong>Author:</strong> {selectedReview.script.author_name}</div>
-                  <div><strong>Email:</strong> {selectedReview.script.author_email}</div>
-                  <div><strong>Tier:</strong> {selectedReview.script.tier_name}</div>
+                <CardContent className="space-y-2 text-portfolio-white">
+                  <div><strong className="text-portfolio-gold">Title:</strong> <span className="text-portfolio-white/90">{selectedReview.script.title}</span></div>
+                  <div><strong className="text-portfolio-gold">Author:</strong> <span className="text-portfolio-white/90">{selectedReview.script.author_name}</span></div>
+                  <div><strong className="text-portfolio-gold">Email:</strong> <span className="text-portfolio-white/90">{selectedReview.script.author_email}</span></div>
+                  <div><strong className="text-portfolio-gold">Tier:</strong> <span className="text-portfolio-white/90">{selectedReview.script.tier_name}</span></div>
                 </CardContent>
               </Card>
 
@@ -786,13 +831,13 @@ Honey & Hemlock Productions
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm text-portfolio-gold">Reviewer Information</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div><strong>Reviewer:</strong> {selectedReview.contractor?.name || 'Unknown'}</div>
-                  <div><strong>Review Date:</strong> {new Date(selectedReview.created_at).toLocaleString()}</div>
+                <CardContent className="space-y-2 text-portfolio-white">
+                  <div><strong className="text-portfolio-gold">Reviewer:</strong> <span className="text-portfolio-white/90">{selectedReview.contractor?.name || 'Unknown'}</span></div>
+                  <div><strong className="text-portfolio-gold">Review Date:</strong> <span className="text-portfolio-white/90">{new Date(selectedReview.created_at).toLocaleString()}</span></div>
                   <div className="flex items-center gap-2">
-                    <strong>Recommendation:</strong>
+                    <strong className="text-portfolio-gold">Recommendation:</strong>
                     <Badge className={selectedReview.recommendation === 'approved' ? 
-                      "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                      "bg-green-600 text-white border border-green-400" : "bg-red-600 text-white border border-red-400"}>
                       {selectedReview.recommendation === 'approved' ? 'APPROVED' : 'DECLINED'}
                     </Badge>
                   </div>
