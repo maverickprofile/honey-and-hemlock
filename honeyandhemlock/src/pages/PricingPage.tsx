@@ -33,26 +33,28 @@ const pricingTiers: PricingTier[] = [
     id: 'tier1',
     name: 'Essential Review',
     price: 500,
-    description: 'Rubric (updated) and scoring with 4-5 pages of notes and detailed feedback',
+    description: 'Updated rubric scoring consisting of character analysis, structure evaluation, story and voice assessment, and more',
     features: [
       'Updated rubric scoring system',
+      'Character analysis',
+      'Structure evaluation',
+      'Story and voice assessment',
       '4-5 pages of detailed notes',
-      'Comprehensive feedback',
-      'Professional evaluation'
+      'Comprehensive feedback'
     ]
   },
   {
     id: 'tier2',
     name: 'Comprehensive Analysis',
     price: 750,
-    description: 'Rubric score, includes 9-10 pages of notes. Including detailed analysis on character, structure, story, voice, and form – what works and what doesn\'t – plus additional comments on how to strengthen, tighten, and clarify the script.',
+    description: 'Includes everything from Essential Review with expanded analysis and recommendations',
     features: [
       'Everything from Essential Review',
       '9-10 pages of detailed notes',
-      'Character analysis',
-      'Structure evaluation',
-      'Story and voice assessment',
-      'Form analysis',
+      'Comprehensive feedback',
+      'In-depth character analysis',
+      'Detailed structure evaluation',
+      'Extended story and voice assessment',
       'Strengthening recommendations',
       'Tightening suggestions',
       'Clarification guidance'
@@ -60,18 +62,19 @@ const pricingTiers: PricingTier[] = [
   },
   {
     id: 'tier3',
-    name: 'Premium Script Notes',
+    name: 'Premier Script Analysis',
     price: 1000,
-    description: 'Rubric score, includes everything from Package 2, plus written notations on the script. Script Notes includes suggestions for scenes that could be cut, condensed, dialogue that could be clearer, possible character changes as well as suggestions where to insert story changes.',
+    description: 'Includes everything from Comprehensive Analysis plus page-by-page script feedback',
     features: [
       'Everything from Comprehensive Analysis',
+      'Page-by-page script feedback',
+      'Dialogue clarity improvement',
+      'Financial recommendations for screenplay producibility',
+      'Pacing recommendations',
       'Written notations directly on script',
-      'Scene cutting suggestions',
-      'Scene condensation recommendations',
-      'Dialogue clarity improvements',
-      'Character change suggestions',
-      'Story insertion recommendations',
-      'Line-by-line feedback'
+      'Scene cutting and condensation suggestions',
+      'Character change recommendations',
+      'Story insertion points'
     ]
   }
 ];
@@ -105,12 +108,6 @@ const PricingPage = () => {
       
       <div className="container mx-auto px-4 sm:px-6 py-12 md:py-20 relative z-10">
         <div className="text-center mb-12 md:mb-16">
-          <h1 className="font-special-elite text-3xl sm:text-4xl md:text-5xl font-semibold mb-4 text-portfolio-gold px-4">
-            Honey Writes
-          </h1>
-          <p className="font-special-elite text-xl sm:text-2xl mb-6 md:mb-8 text-portfolio-white px-4">
-            By producers for production
-          </p>
           <p className="font-special-elite text-base sm:text-lg text-portfolio-white/80 max-w-3xl mx-auto px-4 leading-relaxed">
             Professional script review services designed by industry professionals to help you refine your screenplay and bring it closer to production-ready quality.
           </p>

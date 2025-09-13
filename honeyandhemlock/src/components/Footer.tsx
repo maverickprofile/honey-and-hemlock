@@ -29,8 +29,8 @@ const Footer = () => {
         {/* Logo - Clickable */}
         <div className="text-center mb-8">
           <Link to="/" className="flex items-center justify-center mb-2">
-            <img 
-              src="/lovable-uploads/64475ea2-91fd-4af8-b8e0-4131e1f8ec82.png" 
+            <img
+              src="/lovable-uploads/64475ea2-91fd-4af8-b8e0-4131e1f8ec82.png"
               alt="Honey & Hemlock Productions"
               className="h-60 w-auto"
             />
