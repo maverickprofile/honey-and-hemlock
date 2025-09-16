@@ -248,16 +248,16 @@ const ContractorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-portfolio-black text-portfolio-white">
-      <div className="container mx-auto px-6 py-8">
-        <div className="flex justify-between items-center mb-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="font-special-elite text-3xl font-semibold text-portfolio-gold">Contractor Dashboard</h1>
-            <p className="text-portfolio-white/70">Welcome back, {user?.user_metadata?.name || user?.email}</p>
+            <h1 className="font-special-elite text-2xl sm:text-3xl font-semibold text-portfolio-gold">Contractor Dashboard</h1>
+            <p className="text-portfolio-white/70 text-sm sm:text-base">Welcome back, {user?.user_metadata?.name || user?.email}</p>
           </div>
-          <Button 
+          <Button
             onClick={handleLogout}
             variant="outline"
-            className="bg-portfolio-black text-red-500 border-2 border-red-500 hover:bg-red-600 hover:text-white hover:border-red-600 font-semibold transition-all duration-300"
+            className="bg-portfolio-black text-red-500 border-2 border-red-500 hover:bg-red-600 hover:text-white hover:border-red-600 font-semibold transition-all duration-300 text-sm sm:text-base"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Logout
@@ -280,10 +280,10 @@ const ContractorDashboard = () => {
               <div className="space-y-4">
                 {scripts.map((script) => (
                   <div key={script.id} className="p-4 bg-portfolio-black rounded border border-portfolio-gold/20">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-portfolio-white text-lg">{script.title}</h3>
-                        <p className="text-sm text-portfolio-white/60">by {script.author_name}</p>
+                        <h3 className="font-semibold text-portfolio-white text-base sm:text-lg">{script.title}</h3>
+                        <p className="text-xs sm:text-sm text-portfolio-white/60">by {script.author_name}</p>
                         <p className="text-xs text-portfolio-white/50 mt-1">
                           Submitted: {new Date(script.submitted_at).toLocaleDateString()}
                         </p>
@@ -298,12 +298,12 @@ const ContractorDashboard = () => {
                         <span className="text-xs capitalize text-portfolio-white">{script.status}</span>
                       </div>
                     </div>
-                    
-                    <div className="mt-4 flex space-x-2">
+
+                    <div className="mt-4 flex flex-col sm:flex-row gap-2">
                       <Button
                         onClick={() => navigate(`/script-review/${script.id}`)}
                         size="sm"
-                        className="bg-portfolio-black text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300"
+                        className="bg-portfolio-black text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300 w-full sm:w-auto"
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         View & Review
@@ -312,9 +312,9 @@ const ContractorDashboard = () => {
                         onClick={() => downloadScript(script)}
                         size="sm"
                         variant="outline"
-                        className="bg-portfolio-white text-portfolio-black border-2 border-portfolio-white hover:bg-portfolio-black hover:text-portfolio-gold hover:border-portfolio-gold font-semibold transition-all duration-300"
+                        className="bg-portfolio-white text-portfolio-black border-2 border-portfolio-white hover:bg-portfolio-black hover:text-portfolio-gold hover:border-portfolio-gold font-semibold transition-all duration-300 w-full sm:w-auto"
                       >
-                        <Download className="w-4 h-4 mr-2 text-black" />
+                        <Download className="w-4 h-4 mr-2" />
                         Download
                       </Button>
                     </div>

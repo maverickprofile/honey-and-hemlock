@@ -8,16 +8,18 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  LayoutDashboard, 
-  User, 
-  Settings, 
-  LogOut, 
-  Search, 
+import {
+  LayoutDashboard,
+  User,
+  Settings,
+  LogOut,
+  Search,
   Bell,
   FileText,
   DollarSign,
-  Mail
+  Mail,
+  Menu,
+  X
 } from 'lucide-react';
 
 // Import the new sections
@@ -35,6 +37,7 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [dashboardData, setDashboardData] = useState({
     totalPayments: 0,
     scriptUploads: 0,
@@ -155,9 +158,9 @@ const AdminDashboard = () => {
   };
 
   const renderDashboard = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Top Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {/* Payments Card */}
         <Card className="bg-[#282828] border-none relative overflow-hidden">
           <CardContent className="p-6">
@@ -198,7 +201,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Second Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {/* Scripts Assignment Card */}
         <Card className="bg-[#282828] border-none">
           <CardHeader>
@@ -247,7 +250,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Recent Activity */}
         <Card className="bg-[#282828] border-none">
           <CardHeader>
@@ -327,8 +330,26 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#232323] text-portfolio-white flex">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-[#282828] min-h-screen p-6 flex flex-col">
+      <div className={`${
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0 fixed lg:relative w-64 bg-[#282828] min-h-screen p-6 flex flex-col transition-transform duration-300 z-50 lg:z-auto`}>
+        {/* Close button for mobile */}
+        <button
+          onClick={() => setIsSidebarOpen(false)}
+          className="lg:hidden absolute top-4 right-4 text-gray-400 hover:text-white"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
         {/* User Profile */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 bg-[#FFD62F] rounded-full flex items-center justify-center mb-3">
@@ -350,7 +371,10 @@ const AdminDashboard = () => {
             ].map((item) => (
               <li key={item.id}>
                 <button
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-300 ${
                     activeTab === item.id
                       ? 'bg-portfolio-gold text-black font-semibold'
@@ -378,9 +402,18 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Top Header */}
-        <header className="bg-[#FFD62F] h-16 px-6 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-black">Admin Dashboard</h1>
-          <div className="flex items-center space-x-4">
+        <header className="bg-[#FFD62F] h-16 px-4 md:px-6 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            {/* Hamburger Menu for Mobile */}
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden text-black hover:bg-black/20 p-2 rounded-lg transition-all duration-300"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <h1 className="text-lg md:text-xl font-bold text-black">Admin Dashboard</h1>
+          </div>
+          <div className="flex items-center space-x-2 md:space-x-4">
             <Button
               variant="ghost"
               size="icon"
@@ -395,7 +428,7 @@ const AdminDashboard = () => {
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-auto">
           {activeTab === 'dashboard' && renderDashboard()}
           {activeTab === 'contractors' && <ContractorsSection />}
           {activeTab === 'scripts' && <ScriptsSection />}

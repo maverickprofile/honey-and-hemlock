@@ -43,16 +43,6 @@ interface RubricData {
     note: string;
   }>;
   
-  // Per-page rubrics for $1000 tier
-  pageRubrics?: Array<{
-    page_number: number;
-    plot_rating?: number;
-    characters_rating?: number;
-    dialogue_rating?: number;
-    logic_rating?: number;
-    engagement_rating?: number;
-    notes?: string;
-  }>;
 }
 
 export const exportRubricToPDF = (rubricData: RubricData) => {
@@ -175,11 +165,15 @@ export const exportRubricToPDF = (rubricData: RubricData) => {
   yPosition += lineHeight;
   
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Recommendation:', leftMargin, yPosition);
-  const recColor = rubricData.recommendation === 'approved' ? [0, 128, 0] : [220, 20, 60];
+  pdf.text('Status:', leftMargin, yPosition);
+  // Set color based on status - green for completed, orange for incomplete
+  const statusText = (rubricData.recommendation === 'approved' || rubricData.recommendation === 'declined' || rubricData.recommendation === 'completed')
+    ? 'COMPLETED'
+    : 'INCOMPLETE';
+  const recColor = statusText === 'COMPLETED' ? [0, 128, 0] : [255, 140, 0];
   pdf.setTextColor(...recColor);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(rubricData.recommendation.toUpperCase(), leftMargin + 32, yPosition);
+  pdf.text(statusText, leftMargin + 20, yPosition);
   pdf.setTextColor(...darkColor);
   
   yPosition += 10;
@@ -364,67 +358,6 @@ export const exportRubricToPDF = (rubricData: RubricData) => {
     });
   }
 
-  // Per-Page Rubrics (for $1000 tier)
-  if (rubricData.pageRubrics && rubricData.pageRubrics.length > 0) {
-    checkPageBreak(40);
-    yPosition += 5;
-    
-    pdf.setFillColor(...goldColor);
-    pdf.rect(leftMargin, yPosition, contentWidth, 8, 'F');
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(12);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('DETAILED PAGE RUBRICS', leftMargin + 2, yPosition + 5.5);
-    
-    yPosition += 12;
-    pdf.setTextColor(...darkColor);
-    pdf.setFont('helvetica', 'italic');
-    pdf.setFontSize(9);
-    pdf.text('(Premium Tier - Page-by-Page Analysis)', leftMargin, yPosition);
-    yPosition += 8;
-    
-    rubricData.pageRubrics.forEach(pageRubric => {
-      checkPageBreak(30);
-      
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(10);
-      pdf.setTextColor(...goldColor);
-      pdf.text(`Page ${pageRubric.page_number}`, leftMargin, yPosition);
-      yPosition += 6;
-      
-      pdf.setTextColor(...darkColor);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(9);
-      
-      const metrics = [
-        { label: 'Plot:', value: pageRubric.plot_rating },
-        { label: 'Characters:', value: pageRubric.characters_rating },
-        { label: 'Dialogue:', value: pageRubric.dialogue_rating },
-        { label: 'Logic:', value: pageRubric.logic_rating },
-        { label: 'Engagement:', value: pageRubric.engagement_rating }
-      ];
-      
-      let xOffset = leftMargin;
-      metrics.forEach(metric => {
-        if (metric.value) {
-          pdf.text(`${metric.label} ${metric.value}/5`, xOffset, yPosition);
-          xOffset += 35;
-        }
-      });
-      
-      if (pageRubric.notes) {
-        yPosition += 5;
-        const noteLines = wrapText(pageRubric.notes, contentWidth);
-        noteLines.forEach(line => {
-          checkPageBreak(10);
-          pdf.text(line, leftMargin, yPosition);
-          yPosition += lineHeight;
-        });
-      }
-      
-      yPosition += 5;
-    });
-  }
 
   // Footer on last page
   const pageCount = pdf.internal.getNumberOfPages();

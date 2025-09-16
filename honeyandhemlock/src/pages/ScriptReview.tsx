@@ -170,20 +170,8 @@ const ScriptReview = () => {
         return;
       }
 
-      // Calculate overall recommendation based on average ratings
-      const ratings = [
-        reviewData.plot_rating,
-        reviewData.characters_rating,
-        reviewData.concept_originality_rating,
-        reviewData.structure_rating,
-        reviewData.dialogue_rating,
-        reviewData.format_pacing_rating,
-        reviewData.theme_rating,
-        reviewData.catharsis_rating
-      ].filter(r => r !== null);
-
-      const avgRating = ratings.reduce((a, b) => a + b, 0) / ratings.length;
-      const recommendation = avgRating >= 3.5 ? 'approved' : 'declined';
+      // Set status to 'completed' when contractor submits the rubric, regardless of ratings
+      const recommendation = 'completed'; // Always mark as completed when rubric is submitted
 
       // Compile all notes into feedback
       const feedback = [
@@ -204,7 +192,7 @@ const ScriptReview = () => {
           p_review_id: reviewId,
           p_recommendation: recommendation,
           p_feedback: feedback,
-          p_overall_notes: `Title Response: ${reviewData.title_response}\n\nAverage Rating: ${avgRating.toFixed(1)}/5`
+          p_overall_notes: `Title Response: ${reviewData.title_response}`
         });
 
       if (submitError) {
@@ -218,16 +206,16 @@ const ScriptReview = () => {
             submitted_at: new Date().toISOString(),
             recommendation,
             feedback,
-            overall_notes: `Title Response: ${reviewData.title_response}\n\nAverage Rating: ${avgRating.toFixed(1)}/5`
+            overall_notes: `Title Response: ${reviewData.title_response}`
           })
           .eq('id', reviewId);
 
         if (updateError) throw updateError;
 
-        // Update script status separately
+        // Update script status to 'completed'
         const { error: scriptError } = await supabase
           .from('scripts')
-          .update({ status: recommendation })
+          .update({ status: 'completed' })
           .eq('id', scriptId);
 
         if (scriptError) throw scriptError;
@@ -308,28 +296,28 @@ const ScriptReview = () => {
 
       {/* Submit Review Dialog */}
       <Dialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
-        <DialogContent className="bg-portfolio-dark border-portfolio-gold/20">
+        <DialogContent className="bg-portfolio-dark border-portfolio-gold/20 max-w-[90vw] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-portfolio-gold">Submit Review</DialogTitle>
-            <DialogDescription className="text-portfolio-white/80">
+            <DialogTitle className="text-portfolio-gold text-base sm:text-lg">Submit Review</DialogTitle>
+            <DialogDescription className="text-portfolio-white/80 text-sm sm:text-base">
               Are you ready to submit your review for "{script.title}"? Once submitted, you cannot make further changes.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end space-x-3 mt-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mt-4">
             <Button
               variant="outline"
               onClick={() => {
                 setShowSubmitDialog(false);
                 navigate('/contractor-dashboard');
               }}
-              className="bg-portfolio-black text-portfolio-white border border-portfolio-white/20 hover:bg-portfolio-white/10"
+              className="bg-portfolio-black text-portfolio-white border border-portfolio-white/20 hover:bg-portfolio-white/10 w-full sm:w-auto"
             >
               Save & Exit
             </Button>
             <Button
               onClick={handleSubmitReview}
               disabled={submitting}
-              className="bg-portfolio-black text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300"
+              className="bg-portfolio-black text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-portfolio-black font-semibold transition-all duration-300 w-full sm:w-auto"
             >
               {submitting ? (
                 <>

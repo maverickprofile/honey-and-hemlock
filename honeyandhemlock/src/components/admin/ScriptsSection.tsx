@@ -124,10 +124,14 @@ const ScriptsSection = () => {
         return <Badge className="bg-blue-100 text-blue-800">Assigned</Badge>;
       case 'reviewed':
         return <Badge className="bg-purple-100 text-purple-800">Reviewed</Badge>;
-      case 'approved':
-        return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
-      case 'declined':
-        return <Badge className="bg-red-100 text-red-800">Declined</Badge>;
+      case 'completed':
+        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+      case 'incomplete':
+        return <Badge className="bg-orange-100 text-orange-800">Incomplete</Badge>;
+      case 'approved': // Legacy support
+        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+      case 'declined': // Legacy support
+        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
       default:
         return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
     }
@@ -338,22 +342,10 @@ const ScriptsSection = () => {
       // Get contractor details
       const contractor = contractors.find(c => c.id === review.judge_id);
 
-      // Fetch per-page rubrics for $1000 tier
-      let pageRubrics = [];
-      if (script.amount === 1000) {
-        const { data: rubrics } = await supabase
-          .from('script_page_rubrics')
-          .select('*')
-          .eq('script_review_id', review.id)
-          .order('page_number');
-        pageRubrics = rubrics || [];
-      }
-
       setSelectedReview({
         ...review,
         script: script,
         pageNotes: pageNotes || [],
-        pageRubrics: pageRubrics,
         contractor: contractor
       });
       setIsReviewDialogOpen(true);
@@ -396,7 +388,7 @@ Thank you for submitting your script "${selectedReview.script.title}" to Honey &
 Our reviewer has completed their assessment of your script. Below you'll find their detailed feedback:
 
 ${selectedReview.contractor ? `Reviewed by: ${selectedReview.contractor.name}` : ''}
-Recommendation: ${selectedReview.recommendation === 'approved' ? 'APPROVED' : 'DECLINED'}
+Review Status: ${(selectedReview.status === 'completed' || selectedReview.recommendation === 'approved' || selectedReview.recommendation === 'declined') ? 'COMPLETED' : 'INCOMPLETE'}
 
 --- OVERALL ASSESSMENT ---
 ${selectedReview.overall_notes || 'No overall notes provided.'}
@@ -411,9 +403,7 @@ Page ${note.page_number}:
 ${note.note_content}`).join('\n')}
 ` : ''}
 
-${selectedReview.recommendation === 'approved' ? 
-`Congratulations! Your script has been approved. We will be in touch soon regarding next steps.` : 
-`While your script wasn't selected this time, we encourage you to continue developing your craft and consider submitting future works.`}
+Thank you for submitting your script. Our review process is now complete, and we appreciate your patience throughout the evaluation period.
 
 Best regards,
 Honey & Hemlock Productions
@@ -472,34 +462,34 @@ Honey & Hemlock Productions
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-portfolio-white">{scripts.length}</div>
-              <div className="text-gray-400">Total Scripts</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-portfolio-white">{scripts.length}</div>
+              <div className="text-gray-400 text-sm mt-1">Total Scripts</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-yellow-400">
                 {scripts.filter(s => s.status === 'pending').length}
               </div>
-              <div className="text-gray-400">Pending</div>
+              <div className="text-gray-400 text-sm mt-1">Pending</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-400">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-blue-400">
                 {scripts.filter(s => s.status === 'assigned').length}
               </div>
-              <div className="text-gray-400">In Review</div>
+              <div className="text-gray-400 text-sm mt-1">In Review</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-400">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-purple-400">
                 {scripts.filter(s => s.status === 'reviewed').length}
               </div>
-              <div className="text-gray-400">Reviewed</div>
+              <div className="text-gray-400 text-sm mt-1">Reviewed</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-400">
-                {scripts.filter(s => s.status === 'approved' || s.status === 'declined').length}
+            <div className="bg-[#232323] rounded-lg p-4 text-center col-span-2 sm:col-span-1">
+              <div className="text-2xl sm:text-3xl font-bold text-green-400">
+                {scripts.filter(s => s.status === 'completed' || s.status === 'approved' || s.status === 'declined').length}
               </div>
-              <div className="text-gray-400">Completed</div>
+              <div className="text-gray-400 text-sm mt-1">Completed</div>
             </div>
           </div>
         </CardContent>
@@ -508,18 +498,18 @@ Honey & Hemlock Productions
       {/* Filters */}
       <Card className="bg-[#282828] border-none">
         <CardContent className="p-4">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-col md:flex-row flex-wrap gap-3 md:gap-4 items-stretch md:items-center">
+            <div className="flex items-center space-x-2 flex-1 md:flex-initial">
               <Search className="w-4 h-4 text-gray-400" />
               <Input
                 placeholder="Search scripts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-gray-700 text-portfolio-white border-gray-500 placeholder-gray-400 focus:border-portfolio-gold focus:ring-portfolio-gold w-64"
+                className="bg-gray-700 text-portfolio-white border-gray-500 placeholder-gray-400 focus:border-portfolio-gold focus:ring-portfolio-gold w-full md:w-64"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px] bg-gray-700 text-portfolio-white border-gray-500 hover:bg-gray-600">
+              <SelectTrigger className="w-full md:w-[150px] bg-gray-700 text-portfolio-white border-gray-500 hover:bg-gray-600">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -527,12 +517,12 @@ Honey & Hemlock Productions
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="assigned">Assigned</SelectItem>
                 <SelectItem value="reviewed">Reviewed</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="declined">Declined</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="incomplete">Incomplete</SelectItem>
               </SelectContent>
             </Select>
             <Select value={tierFilter} onValueChange={setTierFilter}>
-              <SelectTrigger className="w-[150px] bg-gray-700 text-portfolio-white border-gray-500 hover:bg-gray-600">
+              <SelectTrigger className="w-full md:w-[150px] bg-gray-700 text-portfolio-white border-gray-500 hover:bg-gray-600">
                 <SelectValue placeholder="Tier" />
               </SelectTrigger>
               <SelectContent>
@@ -551,13 +541,14 @@ Honey & Hemlock Productions
         </CardContent>
       </Card>
 
-      {/* Scripts Table */}
-      <Card className="bg-[#282828] border-none">
+      {/* Scripts Table - Desktop */}
+      <Card className="bg-[#282828] border-none hidden lg:block">
         <CardHeader>
           <CardTitle className="text-portfolio-white">All Scripts</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className="p-6">
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="text-gray-400">Title</TableHead>
@@ -628,7 +619,7 @@ Honey & Hemlock Productions
                           <Eye className="w-4 h-4" />
                         </Button>
                         {/* Show View Review button if script has been reviewed */}
-                        {(script.status === 'reviewed' || script.status === 'approved' || script.status === 'declined') && (
+                        {(script.status === 'reviewed' || script.status === 'completed' || script.status === 'approved' || script.status === 'declined') && (
                           <Button
                             size="sm"
                             className="bg-portfolio-white text-portfolio-black border border-portfolio-white hover:bg-portfolio-black hover:text-portfolio-gold hover:border-portfolio-gold transition-all duration-300"
@@ -653,12 +644,141 @@ Honey & Hemlock Productions
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 
+      {/* Scripts Cards - Mobile */}
+      <div className="lg:hidden space-y-4">
+        <Card className="bg-[#282828] border-none">
+          <CardHeader>
+            <CardTitle className="text-portfolio-white">All Scripts</CardTitle>
+          </CardHeader>
+        </Card>
+
+        {filteredScripts.length === 0 ? (
+          <Card className="bg-[#282828] border-none">
+            <CardContent className="py-8">
+              <div className="text-portfolio-white/60 text-center">
+                <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-2">No scripts found</p>
+                <p className="text-sm">
+                  {scripts.length === 0
+                    ? "Scripts will appear here once submissions are received."
+                    : "Try adjusting your filters to see scripts."
+                  }
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4 px-4">
+            {filteredScripts.map((script) => (
+              <Card key={script.id} className="bg-[#2a2a2a] border border-gray-700">
+                <CardContent className="p-4">
+                  {/* Title and Status Row */}
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1 mr-2">
+                      <h3 className="text-portfolio-white font-semibold text-base mb-1">
+                        {script.title || 'Untitled'}
+                      </h3>
+                      <p className="text-gray-400 text-sm">
+                        by {script.author_name || 'Unknown'}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2 items-end">
+                      {getStatusBadge(script.status || 'pending')}
+                      {getPaymentStatusBadge(script.payment_status || 'pending')}
+                    </div>
+                  </div>
+
+                  {/* Script Details Grid */}
+                  <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                    <div>
+                      <p className="text-gray-500">Tier</p>
+                      <p className="text-portfolio-white font-medium">
+                        {script.tier_name || 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Amount</p>
+                      <p className="text-portfolio-white font-medium">
+                        ${(script.amount || 0) / 100}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Submitted</p>
+                      <p className="text-portfolio-white font-medium">
+                        {script.created_at ? new Date(script.created_at).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Email</p>
+                      <p className="text-portfolio-gold font-medium text-xs truncate">
+                        {script.author_email || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Assign Dropdown */}
+                  <div className="mb-3">
+                    <Select
+                      value={script.assigned_judge_id || "unassigned"}
+                      onValueChange={(value) => handleAssignScript(script.id, value === "unassigned" ? null : value)}
+                    >
+                      <SelectTrigger className="w-full bg-gray-700 text-portfolio-white border-gray-600">
+                        <SelectValue placeholder="Assign to..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
+                        {contractors.filter(c => c.status === 'approved').map((contractor) => (
+                          <SelectItem key={contractor.id} value={contractor.id}>
+                            {contractor.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-portfolio-gold text-black hover:bg-portfolio-gold/90"
+                      onClick={() => handleViewScript(script)}
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      View
+                    </Button>
+                    {(script.status === 'reviewed' || script.status === 'completed' || script.status === 'approved' || script.status === 'declined') && (
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-white text-black hover:bg-gray-200"
+                        onClick={() => handleViewReview(script)}
+                      >
+                        <MessageSquare className="w-4 h-4 mr-1" />
+                        Review
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => openDeleteDialog(script)}
+                      className="px-3"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Script Details Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto bg-portfolio-dark border-portfolio-gold text-portfolio-white">
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] sm:max-h-[85vh] overflow-y-auto bg-portfolio-dark border-portfolio-gold text-portfolio-white">
           <DialogHeader>
             <DialogTitle className="text-portfolio-gold text-xl font-special-elite">
               Script Details
@@ -801,9 +921,9 @@ Honey & Hemlock Productions
 
       {/* Review Details Dialog */}
       <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-portfolio-dark border-portfolio-gold text-portfolio-white">
+        <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] sm:max-h-[80vh] overflow-y-auto bg-portfolio-dark border-portfolio-gold text-portfolio-white">
           <DialogHeader>
-            <DialogTitle className="text-portfolio-gold text-xl font-special-elite">
+            <DialogTitle className="text-portfolio-gold text-base sm:text-xl font-special-elite">
               Script Review
             </DialogTitle>
             <DialogDescription className="text-portfolio-white/70">
@@ -812,7 +932,7 @@ Honey & Hemlock Productions
           </DialogHeader>
           
           {selectedReview && (
-            <div className="space-y-4 mt-4">
+            <div className="space-y-3 sm:space-y-4 mt-3 sm:mt-4 px-2 sm:px-0">
               {/* Script Information */}
               <Card className="bg-portfolio-black border-portfolio-gold/30">
                 <CardHeader className="pb-3">
@@ -836,9 +956,8 @@ Honey & Hemlock Productions
                   <div><strong className="text-portfolio-gold">Review Date:</strong> <span className="text-portfolio-white/90">{new Date(selectedReview.created_at).toLocaleString()}</span></div>
                   <div className="flex items-center gap-2">
                     <strong className="text-portfolio-gold">Recommendation:</strong>
-                    <Badge className={selectedReview.recommendation === 'approved' ? 
-                      "bg-green-600 text-white border border-green-400" : "bg-red-600 text-white border border-red-400"}>
-                      {selectedReview.recommendation === 'approved' ? 'APPROVED' : 'DECLINED'}
+                    <Badge className="bg-green-600 text-white border border-green-400">
+                      {selectedReview.status === 'completed' ? 'COMPLETED' : 'INCOMPLETE'}
                     </Badge>
                   </div>
                 </CardContent>
@@ -1137,276 +1256,6 @@ Honey & Hemlock Productions
                 </Card>
               )}
 
-              {/* Per-Page Rubrics for $1000 Tier */}
-              {selectedReview.pageRubrics && selectedReview.pageRubrics.length > 0 && (
-                <Card className="bg-portfolio-black border-portfolio-gold/30">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm text-portfolio-gold">Per-Page Complete Rubric Assessment ($1000 Tier)</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {selectedReview.pageRubrics.map((rubric: any, pageIndex: number) => (
-                      <div key={rubric.id} className="border border-portfolio-gold/30 rounded-lg p-4">
-                        <div className="text-portfolio-gold text-lg font-semibold mb-4 border-b border-portfolio-gold/20 pb-2">
-                          Page {rubric.page_number}
-                        </div>
-                        
-                        {/* Title Response */}
-                        {rubric.title_response && (
-                          <div className="mb-3">
-                            <span className="text-portfolio-gold/70 text-sm">Title Response:</span>
-                            <p className="text-portfolio-white/90 text-sm mt-1">{rubric.title_response}</p>
-                          </div>
-                        )}
-
-                        <div className="space-y-3">
-                          {/* Plot */}
-                          {(rubric.plot_rating || rubric.plot_notes) && (
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="text-portfolio-gold/90 text-sm font-medium">Plot</span>
-                                {rubric.plot_rating && (
-                                  <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className={`w-4 h-4 rounded ${
-                                          i < rubric.plot_rating
-                                            ? 'bg-portfolio-gold'
-                                            : 'bg-portfolio-gold/20'
-                                        }`}
-                                      />
-                                    ))}
-                                    <span className="text-portfolio-white/70 text-xs ml-1">{rubric.plot_rating}/5</span>
-                                  </div>
-                                )}
-                              </div>
-                              {rubric.plot_notes && (
-                                <p className="text-portfolio-white/70 text-xs">{rubric.plot_notes}</p>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Characters */}
-                          {(rubric.characters_rating || rubric.character_notes) && (
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="text-portfolio-gold/90 text-sm font-medium">Characters</span>
-                                {rubric.characters_rating && (
-                                  <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className={`w-4 h-4 rounded ${
-                                          i < rubric.characters_rating
-                                            ? 'bg-portfolio-gold'
-                                            : 'bg-portfolio-gold/20'
-                                        }`}
-                                      />
-                                    ))}
-                                    <span className="text-portfolio-white/70 text-xs ml-1">{rubric.characters_rating}/5</span>
-                                  </div>
-                                )}
-                              </div>
-                              {rubric.character_notes && (
-                                <p className="text-portfolio-white/70 text-xs">{rubric.character_notes}</p>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Concept/Originality */}
-                          {(rubric.concept_originality_rating || rubric.concept_originality_notes) && (
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="text-portfolio-gold/90 text-sm font-medium">Concept/Originality</span>
-                                {rubric.concept_originality_rating && (
-                                  <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className={`w-4 h-4 rounded ${
-                                          i < rubric.concept_originality_rating
-                                            ? 'bg-portfolio-gold'
-                                            : 'bg-portfolio-gold/20'
-                                        }`}
-                                      />
-                                    ))}
-                                    <span className="text-portfolio-white/70 text-xs ml-1">{rubric.concept_originality_rating}/5</span>
-                                  </div>
-                                )}
-                              </div>
-                              {rubric.concept_originality_notes && (
-                                <p className="text-portfolio-white/70 text-xs">{rubric.concept_originality_notes}</p>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Structure */}
-                          {(rubric.structure_rating || rubric.structure_notes) && (
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="text-portfolio-gold/90 text-sm font-medium">Structure</span>
-                                {rubric.structure_rating && (
-                                  <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className={`w-4 h-4 rounded ${
-                                          i < rubric.structure_rating
-                                            ? 'bg-portfolio-gold'
-                                            : 'bg-portfolio-gold/20'
-                                        }`}
-                                      />
-                                    ))}
-                                    <span className="text-portfolio-white/70 text-xs ml-1">{rubric.structure_rating}/5</span>
-                                  </div>
-                                )}
-                              </div>
-                              {rubric.structure_notes && (
-                                <p className="text-portfolio-white/70 text-xs">{rubric.structure_notes}</p>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Dialogue */}
-                          {(rubric.dialogue_rating || rubric.dialogue_notes) && (
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="text-portfolio-gold/90 text-sm font-medium">Dialogue</span>
-                                {rubric.dialogue_rating && (
-                                  <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className={`w-4 h-4 rounded ${
-                                          i < rubric.dialogue_rating
-                                            ? 'bg-portfolio-gold'
-                                            : 'bg-portfolio-gold/20'
-                                        }`}
-                                      />
-                                    ))}
-                                    <span className="text-portfolio-white/70 text-xs ml-1">{rubric.dialogue_rating}/5</span>
-                                  </div>
-                                )}
-                              </div>
-                              {rubric.dialogue_notes && (
-                                <p className="text-portfolio-white/70 text-xs">{rubric.dialogue_notes}</p>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Format/Pacing */}
-                          {(rubric.format_pacing_rating || rubric.format_pacing_notes) && (
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="text-portfolio-gold/90 text-sm font-medium">Format/Pacing</span>
-                                {rubric.format_pacing_rating && (
-                                  <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className={`w-4 h-4 rounded ${
-                                          i < rubric.format_pacing_rating
-                                            ? 'bg-portfolio-gold'
-                                            : 'bg-portfolio-gold/20'
-                                        }`}
-                                      />
-                                    ))}
-                                    <span className="text-portfolio-white/70 text-xs ml-1">{rubric.format_pacing_rating}/5</span>
-                                  </div>
-                                )}
-                              </div>
-                              {rubric.format_pacing_notes && (
-                                <p className="text-portfolio-white/70 text-xs">{rubric.format_pacing_notes}</p>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Theme/Tone */}
-                          {(rubric.theme_rating || rubric.theme_tone_notes) && (
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="text-portfolio-gold/90 text-sm font-medium">Theme/Tone</span>
-                                {rubric.theme_rating && (
-                                  <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className={`w-4 h-4 rounded ${
-                                          i < rubric.theme_rating
-                                            ? 'bg-portfolio-gold'
-                                            : 'bg-portfolio-gold/20'
-                                        }`}
-                                      />
-                                    ))}
-                                    <span className="text-portfolio-white/70 text-xs ml-1">{rubric.theme_rating}/5</span>
-                                  </div>
-                                )}
-                              </div>
-                              {rubric.theme_tone_notes && (
-                                <p className="text-portfolio-white/70 text-xs">{rubric.theme_tone_notes}</p>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Catharsis */}
-                          {(rubric.catharsis_rating || rubric.catharsis_notes) && (
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="text-portfolio-gold/90 text-sm font-medium">Catharsis</span>
-                                {rubric.catharsis_rating && (
-                                  <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className={`w-4 h-4 rounded ${
-                                          i < rubric.catharsis_rating
-                                            ? 'bg-portfolio-gold'
-                                            : 'bg-portfolio-gold/20'
-                                        }`}
-                                      />
-                                    ))}
-                                    <span className="text-portfolio-white/70 text-xs ml-1">{rubric.catharsis_rating}/5</span>
-                                  </div>
-                                )}
-                              </div>
-                              {rubric.catharsis_notes && (
-                                <p className="text-portfolio-white/70 text-xs">{rubric.catharsis_notes}</p>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Production Budget */}
-                          {(rubric.production_budget_rating || rubric.production_budget_notes) && (
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="text-portfolio-gold/90 text-sm font-medium">Production Budget</span>
-                                {rubric.production_budget_rating && (
-                                  <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className={`w-4 h-4 rounded ${
-                                          i < rubric.production_budget_rating
-                                            ? 'bg-portfolio-gold'
-                                            : 'bg-portfolio-gold/20'
-                                        }`}
-                                      />
-                                    ))}
-                                    <span className="text-portfolio-white/70 text-xs ml-1">{rubric.production_budget_rating}/5</span>
-                                  </div>
-                                )}
-                              </div>
-                              {rubric.production_budget_notes && (
-                                <p className="text-portfolio-white/70 text-xs">{rubric.production_budget_notes}</p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
 
               {/* Page Notes */}
               {selectedReview.pageNotes && selectedReview.pageNotes.length > 0 && (
@@ -1430,28 +1279,30 @@ Honey & Hemlock Productions
               )}
 
               {/* Action Buttons */}
-              <div className="flex justify-between items-center pt-4">
-                <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center pt-4">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <Button
                     onClick={handleSendReviewEmail}
                     disabled={sendingEmail}
-                    className="bg-portfolio-gold text-black hover:bg-portfolio-gold/90"
+                    className="bg-portfolio-gold text-black hover:bg-portfolio-gold/90 text-sm sm:text-base"
                   >
                     <Send className="w-4 h-4 mr-2" />
-                    {sendingEmail ? 'Preparing Email...' : 'Copy Review Email'}
+                    <span className="hidden sm:inline">{sendingEmail ? 'Preparing Email...' : 'Copy Review Email'}</span>
+                    <span className="sm:hidden">{sendingEmail ? 'Preparing...' : 'Copy Email'}</span>
                   </Button>
                   <Button
                     onClick={() => exportRubricToPDF(selectedReview)}
-                    className="bg-green-600 text-white hover:bg-green-700"
+                    className="bg-green-600 text-white hover:bg-green-700 text-sm sm:text-base"
                   >
                     <FileDown className="w-4 h-4 mr-2" />
-                    Download PDF
+                    <span className="hidden sm:inline">Download PDF</span>
+                    <span className="sm:hidden">PDF</span>
                   </Button>
                 </div>
                 <Button
                   variant="outline"
                   onClick={() => setIsReviewDialogOpen(false)}
-                  className="border-portfolio-gold text-portfolio-gold hover:bg-portfolio-gold/10"
+                  className="border-portfolio-gold text-portfolio-gold hover:bg-portfolio-gold/10 w-full sm:w-auto"
                 >
                   Close
                 </Button>

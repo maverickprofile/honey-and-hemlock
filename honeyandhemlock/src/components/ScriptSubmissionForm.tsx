@@ -84,8 +84,8 @@ const ScriptSubmissionForm: React.FC<ScriptSubmissionFormProps> = ({
       console.log('Tier Price (dollars):', selectedTier.price);
       console.log('Is Free Tier:', selectedTier.price === 0);
       
-      // Check if this is a free tier
-      if (selectedTier.price === 0) {
+      // Check if this is a free tier or $1000 tier (TESTING MODE)
+      if (selectedTier.price === 0 || selectedTier.price === 1000) {
         // For free tier, upload the file to Supabase storage first
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}_${file.name}`;
@@ -120,7 +120,7 @@ const ScriptSubmissionForm: React.FC<ScriptSubmissionFormProps> = ({
             author_phone: authorPhone,
             file_url: publicUrl,
             file_name: file.name,
-            amount: 0,
+            amount: selectedTier.price,
             payment_status: 'paid', // Mark as paid since it's free
             status: 'pending',
             tier_id: selectedTier.id,
@@ -134,7 +134,7 @@ const ScriptSubmissionForm: React.FC<ScriptSubmissionFormProps> = ({
           throw scriptError;
         }
         
-        console.log('Free script created successfully:', scriptData);
+        console.log('Script created successfully (Test Mode for $1000 tier):', scriptData);
         
         // Show success message
         toast({
@@ -293,7 +293,7 @@ const ScriptSubmissionForm: React.FC<ScriptSubmissionFormProps> = ({
         className="w-full bg-portfolio-gold text-black hover:bg-portfolio-gold/90 text-lg py-3"
       >
         <Upload className="w-5 h-5 mr-2" />
-        {selectedTier.price === 0 ? 'Upload Script (Free)' : 'Proceed to Payment'}
+        {(selectedTier.price === 0 || selectedTier.price === 1000) ? 'Upload Script (Test Mode)' : 'Proceed to Payment'}
       </Button>
     </form>
   );

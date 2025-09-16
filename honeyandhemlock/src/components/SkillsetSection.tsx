@@ -76,16 +76,16 @@ const SkillsetSection = () => {
           <p className="font-special-elite text-lg text-portfolio-gold">Award Winning Films</p>
         </div>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 max-w-6xl mx-auto items-center">
-          {/* Left Column - Skills Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:-ml-8">
+        {/* Two Column Layout - Adjusted for better balance */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto items-center">
+          {/* Left Column - Skills Grid in a row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {skills.map((skill, index) => (
-              <div key={index} className="flex flex-col items-center justify-start p-8 group hover:bg-white/5 transition-all duration-300 rounded-lg">
-                <div className="h-12 flex items-center justify-center mb-4">
-                  <skill.icon className="w-12 h-12 text-portfolio-gold group-hover:scale-110 transition-transform duration-300" />
+              <div key={index} className="flex flex-col items-center justify-start p-3 group hover:bg-white/5 transition-all duration-300 rounded-lg">
+                <div className="h-10 flex items-center justify-center mb-3">
+                  <skill.icon className="w-10 h-10 text-portfolio-gold group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                <h3 className="font-special-elite text-xl font-semibold mb-2 text-center min-h-[3rem] flex items-center">
+                <h3 className="font-special-elite text-lg font-semibold mb-2 text-center min-h-[2.5rem] flex items-center">
                   {index === 0 ? (
                     <div>
                       <span className="whitespace-nowrap">End-to-end</span>
@@ -103,13 +103,15 @@ const SkillsetSection = () => {
             ))}
           </div>
 
-          {/* Right Column - Single Image */}
-          <div className="relative">
-            <img 
-              src="/lovable-uploads/2b22540e-5ab5-40fb-bf0b-1b453ba62491.png"
-              alt="Our work showcase"
-              className="w-full h-auto object-cover rounded-lg shadow-2xl"
-            />
+          {/* Right Column - Balanced size image */}
+          <div className="relative flex justify-center">
+            <div className="w-full" style={{ maxWidth: '30rem' }}>
+              <img
+                src="/H&H_work.png"
+                alt="Our work showcase"
+                className="w-full h-auto object-contain rounded-lg shadow-2xl"
+              />
+            </div>
           </div>
         </div>
       </div>

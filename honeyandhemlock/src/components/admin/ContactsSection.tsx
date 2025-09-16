@@ -243,40 +243,41 @@ const ContactsSection = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-portfolio-white">{contacts.length}</div>
-              <div className="text-gray-400">Total Submissions</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-portfolio-white">{contacts.length}</div>
+              <div className="text-gray-400 text-xs sm:text-sm mt-1">Total</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-400">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-blue-400">
                 {contacts.filter(c => c.status === 'new').length}
               </div>
-              <div className="text-gray-400">New</div>
+              <div className="text-gray-400 text-xs sm:text-sm mt-1">New</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-yellow-400">
                 {contacts.filter(c => c.status === 'read').length}
               </div>
-              <div className="text-gray-400">Read</div>
+              <div className="text-gray-400 text-xs sm:text-sm mt-1">Read</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-400">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-green-400">
                 {contacts.filter(c => c.status === 'responded').length}
               </div>
-              <div className="text-gray-400">Responded</div>
+              <div className="text-gray-400 text-xs sm:text-sm mt-1">Responded</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Contacts Table */}
-      <Card className="bg-[#282828] border-none">
+      {/* Contacts Table - Desktop */}
+      <Card className="bg-[#282828] border-none hidden lg:block">
         <CardHeader>
           <CardTitle className="text-portfolio-white">Contact Management</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className="p-6">
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="text-gray-400">Name</TableHead>
@@ -360,8 +361,109 @@ const ContactsSection = () => {
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Contacts Cards - Mobile */}
+      <div className="lg:hidden space-y-4">
+        <Card className="bg-[#282828] border-none">
+          <CardHeader>
+            <CardTitle className="text-portfolio-white">Contact Management</CardTitle>
+          </CardHeader>
+        </Card>
+
+        {contacts.length === 0 ? (
+          <Card className="bg-[#282828] border-none">
+            <CardContent className="py-8">
+              <div className="text-portfolio-white/60 text-center">
+                <Mail className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-2">No contact submissions</p>
+                <p className="text-sm">Contact form submissions will appear here.</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4 px-4">
+            {contacts.map((contact) => (
+              <Card key={contact.id} className={`bg-[#2a2a2a] border ${contact.status === 'new' ? 'border-blue-500/50' : 'border-gray-700'}`}>
+                <CardContent className="p-4">
+                  {/* Header with Name and Status */}
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h3 className="text-portfolio-white font-semibold text-base mb-1">
+                        {contact.name}
+                      </h3>
+                      <p className="text-portfolio-gold text-sm font-medium">
+                        {contact.subject}
+                      </p>
+                    </div>
+                    <div className="ml-2">
+                      {getStatusBadge(contact.status)}
+                    </div>
+                  </div>
+
+                  {/* Contact Details */}
+                  <div className="space-y-2 mb-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <a
+                        href={`mailto:${contact.email}`}
+                        className="text-portfolio-gold truncate"
+                      >
+                        {contact.email}
+                      </a>
+                    </div>
+                    {contact.phone && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        <a
+                          href={`tel:${contact.phone}`}
+                          className="text-portfolio-gold"
+                        >
+                          {contact.phone}
+                        </a>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <Calendar className="w-4 h-4" />
+                      {formatDate(contact.date)}
+                    </div>
+                  </div>
+
+                  {/* Message Preview */}
+                  <div className="bg-[#232323] rounded p-3 mb-3">
+                    <p className="text-gray-300 text-sm line-clamp-3">
+                      {contact.message}
+                    </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-[#FFD62F] text-black hover:bg-[#FFD62F]/90"
+                      onClick={() => {
+                        updateContactStatus(contact.id, contact.status === 'new' ? 'read' : 'responded');
+                      }}
+                    >
+                      {contact.status === 'new' ? 'Mark Read' : 'Mark Responded'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => deleteContact(contact.id)}
+                      className="px-3"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Contact Details */}
       {contacts.length > 0 && (

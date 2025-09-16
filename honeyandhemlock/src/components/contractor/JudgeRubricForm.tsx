@@ -148,18 +148,18 @@ const JudgeRubricForm: React.FC<JudgeRubricFormProps> = ({
     lowLabel?: string,
     highLabel?: string
   }) => (
-    <div className="flex items-center space-x-4">
-      <span className="text-xs text-portfolio-white/50 w-12">{lowLabel}</span>
-      <RadioGroup value={value} onValueChange={onChange} className="flex flex-row items-center space-x-3">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+      <span className="text-xs text-portfolio-white/50 sm:w-12">{lowLabel}</span>
+      <RadioGroup value={value} onValueChange={onChange} className="flex flex-row items-center gap-2 sm:gap-3 flex-wrap">
         {Array.from({ length: max }, (_, i) => i + 1).map((rating) => (
           <div key={rating} className="flex flex-col items-center">
-            <RadioGroupItem 
-              value={rating.toString()} 
+            <RadioGroupItem
+              value={rating.toString()}
               id={`${name}-${rating}`}
-              className="border-portfolio-gold/50 text-portfolio-gold data-[state=checked]:border-portfolio-gold data-[state=checked]:bg-portfolio-gold"
+              className="border-portfolio-gold/50 text-portfolio-gold data-[state=checked]:border-portfolio-gold data-[state=checked]:bg-portfolio-gold w-8 h-8 sm:w-9 sm:h-9"
             />
-            <Label 
-              htmlFor={`${name}-${rating}`} 
+            <Label
+              htmlFor={`${name}-${rating}`}
               className="text-xs text-portfolio-white/70 mt-1 cursor-pointer"
             >
               {rating}
@@ -167,16 +167,16 @@ const JudgeRubricForm: React.FC<JudgeRubricFormProps> = ({
           </div>
         ))}
       </RadioGroup>
-      <span className="text-xs text-portfolio-white/50 w-12">{highLabel}</span>
+      <span className="text-xs text-portfolio-white/50 sm:w-12">{highLabel}</span>
     </div>
   );
 
   return (
-    <div className="bg-portfolio-dark border-t-2 border-portfolio-gold/30 p-8">
+    <div className="bg-portfolio-dark border-t-2 border-portfolio-gold/30 p-4 sm:p-6 lg:p-8">
       <Card className="bg-portfolio-black border-portfolio-gold/20 max-w-5xl mx-auto">
-        <CardHeader className="border-b border-portfolio-gold/20">
-          <CardTitle className="text-2xl font-special-elite text-portfolio-gold">
-            Judging Rubric For {scriptTitle}
+        <CardHeader className="border-b border-portfolio-gold/20 p-4 sm:p-6">
+          <CardTitle className="text-lg sm:text-xl lg:text-2xl font-special-elite text-portfolio-gold">
+            Judging Rubric For <span className="block sm:inline">{scriptTitle}</span>
           </CardTitle>
           {saving && (
             <div className="text-sm text-portfolio-white/50 flex items-center">
@@ -186,10 +186,10 @@ const JudgeRubricForm: React.FC<JudgeRubricFormProps> = ({
           )}
         </CardHeader>
         
-        <CardContent className="space-y-8 pt-6">
+        <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6">
           {/* 1. Title */}
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-portfolio-white">
+            <Label htmlFor="title" className="text-portfolio-white text-sm sm:text-base">
               1. Title <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -202,8 +202,8 @@ const JudgeRubricForm: React.FC<JudgeRubricFormProps> = ({
           </div>
 
           {/* 2. Plot */}
-          <div className="space-y-4">
-            <Label className="text-portfolio-white">
+          <div className="space-y-3 sm:space-y-4">
+            <Label className="text-portfolio-white text-sm sm:text-base">
               2. PLOT <span className="text-red-500">*</span>
             </Label>
             <RatingScale 

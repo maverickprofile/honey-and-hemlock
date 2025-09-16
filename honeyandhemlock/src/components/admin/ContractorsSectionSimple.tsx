@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Trash2, Check, X, Clock } from 'lucide-react';
+import { User, Trash2, Check, X, Clock, Calendar } from 'lucide-react';
 
 const ContractorsSectionSimple = () => {
   const [contractors, setContractors] = useState<any[]>([]);
@@ -173,28 +173,28 @@ const ContractorsSectionSimple = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-portfolio-white">{contractors.length}</div>
-              <div className="text-gray-400">Total</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-portfolio-white">{contractors.length}</div>
+              <div className="text-gray-400 text-xs sm:text-sm mt-1">Total</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-yellow-400">
                 {contractors.filter(c => c.status === 'pending').length}
               </div>
-              <div className="text-gray-400">Pending</div>
+              <div className="text-gray-400 text-xs sm:text-sm mt-1">Pending</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-400">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-green-400">
                 {contractors.filter(c => c.status === 'approved').length}
               </div>
-              <div className="text-gray-400">Approved</div>
+              <div className="text-gray-400 text-xs sm:text-sm mt-1">Approved</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-red-400">
+            <div className="bg-[#232323] rounded-lg p-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-red-400">
                 {contractors.filter(c => c.status === 'declined').length}
               </div>
-              <div className="text-gray-400">Declined</div>
+              <div className="text-gray-400 text-xs sm:text-sm mt-1">Declined</div>
             </div>
           </div>
         </CardContent>
@@ -218,8 +218,9 @@ const ContractorsSectionSimple = () => {
             </Select>
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className="p-6 hidden lg:block">
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="text-gray-400">Name</TableHead>
@@ -319,6 +320,109 @@ const ContractorsSectionSimple = () => {
               )}
             </TableBody>
           </Table>
+          </div>
+        </CardContent>
+
+        {/* Mobile Cards */}
+        <CardContent className="p-0 lg:hidden">
+          {filteredContractors.length === 0 ? (
+            <div className="p-8">
+              <div className="text-portfolio-white/60 text-center">
+                <User className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-2">No contractors found</p>
+                <p className="text-sm">Contractors will appear here once registered.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4 p-4">
+              {filteredContractors.map((contractor) => (
+                <Card
+                  key={contractor.id}
+                  className={`bg-[#2a2a2a] border ${contractor.status === 'pending' ? 'border-yellow-500/50' : 'border-gray-700'}`}
+                >
+                  <CardContent className="p-4">
+                    {/* Header with Name and Status */}
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h3 className="text-portfolio-white font-semibold text-base mb-1">
+                          {contractor.name || 'Unnamed'}
+                        </h3>
+                        <p className="text-portfolio-gold text-sm">
+                          {contractor.email || 'No email'}
+                        </p>
+                      </div>
+                      <div className="ml-2">
+                        {getStatusBadge(contractor.status)}
+                      </div>
+                    </div>
+
+                    {/* Contractor Details */}
+                    <div className="bg-[#232323] rounded p-3 mb-3">
+                      <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                        <Calendar className="w-4 h-4" />
+                        <span>Joined {contractor.created_at ? new Date(contractor.created_at).toLocaleDateString() : 'N/A'}</span>
+                      </div>
+                      <div className="text-sm text-gray-300">
+                        Status: <span className="text-portfolio-white font-medium">{contractor.status}</span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      {contractor.status === 'pending' && (
+                        <>
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                            onClick={() => handleUpdateStatus(contractor.id, 'approved')}
+                          >
+                            <Check className="w-4 h-4 mr-1" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                            onClick={() => handleUpdateStatus(contractor.id, 'declined')}
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            Decline
+                          </Button>
+                        </>
+                      )}
+                      {contractor.status === 'approved' && (
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white"
+                          onClick={() => handleUpdateStatus(contractor.id, 'pending')}
+                        >
+                          <Clock className="w-4 h-4 mr-1" />
+                          Revoke
+                        </Button>
+                      )}
+                      {contractor.status === 'declined' && (
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                          onClick={() => handleUpdateStatus(contractor.id, 'pending')}
+                        >
+                          <Clock className="w-4 h-4 mr-1" />
+                          Reconsider
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => openDeleteDialog(contractor)}
+                        className="px-3"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
