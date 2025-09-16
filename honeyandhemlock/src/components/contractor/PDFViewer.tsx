@@ -75,12 +75,13 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
   // Detect mobile and Safari on mount
   useEffect(() => {
     const checkDevice = () => {
-      setIsMobile(window.innerWidth <= 768);
-      // Use fallback ONLY for Safari browsers
-      const shouldUseFallback = isIOSSafari() || isSafari();
+      const isMobileDevice = window.innerWidth <= 768;
+      setIsMobile(isMobileDevice);
+      // Use fallback for Safari browsers OR mobile devices to prevent downloads
+      const shouldUseFallback = isIOSSafari() || isSafari() || isMobileDevice;
       setUseFallback(shouldUseFallback);
 
-      // For Safari, set a default number of pages if not already set
+      // For fallback mode, set a default number of pages if not already set
       if (shouldUseFallback && pageCount) {
         setNumPages(pageCount || 120); // Use pageCount prop or default to 120
       }
@@ -369,7 +370,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         </div>
 
         {/* PDF Document */}
-        <div className="flex-1 overflow-hidden p-2 sm:p-4">
+        <div className="flex-1 overflow-hidden p-2 sm:p-4" style={{ maxHeight: isMobile ? '70vh' : 'auto' }}>
           {loading && !pdfUrl && !pdfError && (
             <div className="w-full h-full flex justify-center items-center">
               <div className="flex flex-col items-center">
@@ -388,17 +389,46 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           )}
           {pdfUrl && !pdfError && (
             <div className="w-full h-full overflow-auto">
-              {/* Use iframe fallback for Safari/iOS */}
+              {/* Use iframe fallback for Safari/iOS/Mobile */}
               {useFallback ? (
                 <div className="w-full h-full flex flex-col">
-                  <iframe
-                    key={pageNumber} // Force reload when page changes
-                    src={`${pdfUrl}#page=${pageNumber}`}
-                    className="w-full flex-1 border-0"
-                    style={{ minHeight: isMobile ? '400px' : '600px' }}
-                    title={`${scriptTitle} - Page ${pageNumber}`}
-                    onLoad={() => setLoading(false)}
-                  />
+                  {isMobile ? (
+                    // Mobile-optimized viewer
+                    <div className="w-full" style={{ height: '70vh' }}>
+                      {/* Try embedded object first for better mobile support */}
+                      <object
+                        data={`${pdfUrl}#view=FitH&scrollbar=1&toolbar=0&navpanes=0`}
+                        type="application/pdf"
+                        className="w-full h-full rounded-lg"
+                        style={{ backgroundColor: '#1a1a1a' }}
+                      >
+                        {/* Fallback to Google Docs viewer if object doesn't work */}
+                        <iframe
+                          src={`https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`}
+                          className="w-full h-full border-0 rounded-lg"
+                          style={{ backgroundColor: '#1a1a1a' }}
+                          title={scriptTitle}
+                          onLoad={() => setLoading(false)}
+                          allow="autoplay"
+                        />
+                      </object>
+                    </div>
+                  ) : (
+                    // Regular iframe for desktop Safari
+                    <iframe
+                      key={pageNumber}
+                      src={`${pdfUrl}#page=${pageNumber}&view=FitH&toolbar=0`}
+                      className="w-full flex-1 border-0 rounded-lg"
+                      style={{
+                        minHeight: '600px',
+                        height: '100%',
+                        backgroundColor: '#1a1a1a'
+                      }}
+                      title={`${scriptTitle} - Page ${pageNumber}`}
+                      onLoad={() => setLoading(false)}
+                      sandbox="allow-same-origin allow-scripts allow-forms"
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="flex justify-center p-2 sm:p-4">
@@ -428,11 +458,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                     >
                       <Page
                         pageNumber={pageNumber}
-                        scale={isMobile ? 0.6 : scale}
+                        scale={isMobile ? 0.5 : scale}
                         className="shadow-2xl"
-                        renderTextLayer={!isMobile}
-                        renderAnnotationLayer={!isMobile}
-                        width={isMobile ? undefined : containerWidth}
+                        renderTextLayer={false}
+                        renderAnnotationLayer={false}
+                        width={isMobile ? window.innerWidth - 32 : containerWidth}
                       />
                     </Document>
                   </div>
@@ -442,8 +472,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           )}
         </div>
 
-        {/* Navigation - Always visible for page-by-page notes */}
-        <div className="bg-portfolio-dark border-t border-portfolio-gold/20 p-3 sm:p-4">
+        {/* Navigation - Hidden on mobile when using Google Docs viewer */}
+        <div className={`bg-portfolio-dark border-t border-portfolio-gold/20 p-3 sm:p-4 ${isMobile && useFallback ? 'hidden' : ''}`}>
           <div className="flex items-center justify-center gap-2 sm:gap-4">
             <Button
               onClick={() => handlePageChange(Math.max(1, pageNumber - 1))}
@@ -495,19 +525,19 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
       </div>
 
           {/* Notes Section - Make responsive */}
-          <div className={`${isMobile ? 'w-full' : 'w-96'} bg-portfolio-dark ${isMobile ? 'border-t' : 'border-l'} border-portfolio-gold/20 flex flex-col flex-shrink-0`}>
+          <div className={`${isMobile ? 'w-full' : 'w-96'} bg-portfolio-dark ${isMobile ? 'border-t' : 'border-l'} border-portfolio-gold/20 flex flex-col flex-shrink-0 ${isMobile && useFallback ? 'mt-4' : ''}`}>
             <Card className="bg-transparent border-none h-full flex flex-col">
           <CardHeader className="border-b border-portfolio-gold/20 p-3 sm:p-6">
             <CardTitle className="text-portfolio-gold flex items-center">
               <FileText className="w-5 h-5 mr-2" />
-              Notes for Page {pageNumber}
+              {isMobile && useFallback ? 'Script Notes' : `Notes for Page ${pageNumber}`}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col p-3 sm:p-4">
             <Textarea
               value={currentNote}
               onChange={(e) => setCurrentNote(e.target.value)}
-              placeholder="Add your notes for this page here. There's no character limit - write as much as you need."
+              placeholder={isMobile && useFallback ? "Add your notes for the entire script here. There's no character limit - write as much as you need." : "Add your notes for this page here. There's no character limit - write as much as you need."}
               className="flex-1 bg-portfolio-black border-portfolio-gold/30 text-portfolio-white resize-none min-h-[150px] sm:min-h-[200px]"
             />
             <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -533,8 +563,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
               </Button>
             </div>
             
-            {/* Indicator for pages with notes */}
-            <div className="mt-4 pt-4 border-t border-portfolio-gold/20">
+            {/* Indicator for pages with notes - Hide on mobile with fallback */}
+            <div className={`mt-4 pt-4 border-t border-portfolio-gold/20 ${isMobile && useFallback ? 'hidden' : ''}`}>
               <p className="text-xs sm:text-sm text-portfolio-white/60 mb-2">Pages with notes:</p>
               <div className="flex flex-wrap gap-1 sm:gap-2 max-h-24 overflow-y-auto">
                 {Object.keys(pageNotes).map(page => (
