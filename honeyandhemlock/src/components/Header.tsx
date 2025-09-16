@@ -136,14 +136,7 @@ const Header = () => {
 
             {/* Desktop Right Navigation */}
             <div className="hidden lg:flex space-x-6 xl:space-x-8">
-              <button 
-                onClick={scrollToFounders}
-                className="font-special-elite text-sm uppercase tracking-wider hover:text-portfolio-gold transition-colors relative group"
-              >
-                About
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-portfolio-gold transition-all group-hover:w-full"></span>
-              </button>
-              <Link 
+              <Link
                 to="/sponsorship"
                 className="font-special-elite text-sm uppercase tracking-wider hover:text-portfolio-gold transition-colors relative group"
               >
@@ -236,13 +229,7 @@ const Header = () => {
               >
                 Honey Writes
               </Link>
-              <button 
-                onClick={scrollToFounders}
-                className="font-special-elite text-xl uppercase tracking-wider hover:text-portfolio-gold transition-colors text-center py-3"
-              >
-                About
-              </button>
-              <Link 
+              <Link
                 to="/sponsorship"
                 className="font-special-elite text-xl uppercase tracking-wider hover:text-portfolio-gold transition-colors text-center py-3"
                 onClick={closeMobileMenu}

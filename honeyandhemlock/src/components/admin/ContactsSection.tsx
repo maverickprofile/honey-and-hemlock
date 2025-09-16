@@ -25,48 +25,86 @@ const ContactsSection = () => {
 
   const fetchContacts = useCallback(async () => {
     try {
-      // Fetch from Supabase
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Map the data to match our interface
-      const mappedContacts = (data || []).map(contact => ({
-        id: contact.id,
-        name: contact.name,
-        email: contact.email,
-        phone: contact.phone || '',
-        subject: contact.subject || '',
-        message: contact.message,
-        date: contact.created_at,
-        status: contact.status as 'new' | 'read' | 'responded'
-      }));
-
-      setContacts(mappedContacts);
-
-      // Also check localStorage for any legacy data
+      // First, get contacts from localStorage
       const localData = localStorage.getItem('contacts');
-      if (localData) {
-        const localContacts = JSON.parse(localData);
-        // You might want to migrate these to Supabase
-        console.log('Found legacy contacts in localStorage:', localContacts.length);
+      const localContacts = localData ? JSON.parse(localData) : [];
+
+      // Try to fetch from Supabase
+      let supabaseContacts = [];
+      let dbError = null;
+
+      try {
+        const { data, error } = await supabase
+          .from('contacts')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          // Map the data to match our interface
+          supabaseContacts = (data || []).map(contact => ({
+            id: contact.id,
+            name: contact.name,
+            email: contact.email,
+            phone: contact.phone || '',
+            subject: contact.subject || '',
+            message: contact.message,
+            date: contact.created_at,
+            status: contact.status as 'new' | 'read' | 'responded'
+          }));
+        } else {
+          dbError = error;
+        }
+      } catch (error) {
+        dbError = error;
+        console.log('Database fetch failed, using localStorage:', error);
+      }
+
+      // Merge contacts from both sources, removing duplicates
+      const allContacts = [...supabaseContacts];
+      const supabaseIds = new Set(supabaseContacts.map(c => c.id));
+
+      // Add localStorage contacts that aren't in Supabase
+      localContacts.forEach((localContact: any) => {
+        if (!supabaseIds.has(localContact.id)) {
+          allContacts.push({
+            id: localContact.id,
+            name: localContact.name,
+            email: localContact.email,
+            phone: localContact.phone || '',
+            subject: localContact.subject || '',
+            message: localContact.message,
+            date: localContact.date || localContact.created_at,
+            status: localContact.status as 'new' | 'read' | 'responded'
+          });
+        }
+      });
+
+      // Sort by date (newest first)
+      allContacts.sort((a, b) =>
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+
+      setContacts(allContacts);
+
+      if (dbError && allContacts.length === localContacts.length) {
+        toast({
+          title: "Notice",
+          description: "Showing locally stored contacts. Database connection unavailable.",
+        });
       }
     } catch (error) {
       console.error('Error fetching contacts:', error);
-      
-      // Fallback to localStorage if Supabase fails
+
+      // Ultimate fallback
       const contactsData = localStorage.getItem('contacts');
       const parsedContacts = contactsData ? JSON.parse(contactsData) : [];
-      setContacts(parsedContacts.sort((a: ContactSubmission, b: ContactSubmission) => 
+      setContacts(parsedContacts.sort((a: ContactSubmission, b: ContactSubmission) =>
         new Date(b.date).getTime() - new Date(a.date).getTime()
       ));
-      
+
       toast({
         title: "Warning",
-        description: "Failed to fetch from database, showing cached data",
+        description: "Failed to load contacts properly. Please refresh the page.",
         variant: "destructive"
       });
     } finally {
@@ -80,20 +118,36 @@ const ContactsSection = () => {
 
   const updateContactStatus = async (contactId: number | string, newStatus: 'new' | 'read' | 'responded') => {
     try {
-      // Update in Supabase
-      const { error } = await supabase
-        .from('contacts')
-        .update({ status: newStatus })
-        .eq('id', contactId);
+      // Try to update in Supabase
+      try {
+        const { error } = await supabase
+          .from('contacts')
+          .update({ status: newStatus })
+          .eq('id', contactId);
 
-      if (error) throw error;
+        if (error) {
+          console.log('Database update failed, updating localStorage:', error);
+        }
+      } catch (dbError) {
+        console.log('Database update failed:', dbError);
+      }
+
+      // Always update in localStorage
+      const localData = localStorage.getItem('contacts');
+      if (localData) {
+        const localContacts = JSON.parse(localData);
+        const updatedLocalContacts = localContacts.map((contact: any) =>
+          contact.id === contactId ? { ...contact, status: newStatus } : contact
+        );
+        localStorage.setItem('contacts', JSON.stringify(updatedLocalContacts));
+      }
 
       // Update local state
-      const updatedContacts = contacts.map(contact => 
+      const updatedContacts = contacts.map(contact =>
         contact.id === contactId ? { ...contact, status: newStatus } : contact
       );
       setContacts(updatedContacts);
-      
+
       toast({
         title: "Success",
         description: "Contact status updated",
@@ -110,18 +164,32 @@ const ContactsSection = () => {
 
   const deleteContact = async (contactId: number | string) => {
     try {
-      // Delete from Supabase
-      const { error } = await supabase
-        .from('contacts')
-        .delete()
-        .eq('id', contactId);
+      // Try to delete from Supabase
+      try {
+        const { error } = await supabase
+          .from('contacts')
+          .delete()
+          .eq('id', contactId);
 
-      if (error) throw error;
+        if (error) {
+          console.log('Database delete failed, removing from localStorage:', error);
+        }
+      } catch (dbError) {
+        console.log('Database delete failed:', dbError);
+      }
+
+      // Always delete from localStorage
+      const localData = localStorage.getItem('contacts');
+      if (localData) {
+        const localContacts = JSON.parse(localData);
+        const updatedLocalContacts = localContacts.filter((contact: any) => contact.id !== contactId);
+        localStorage.setItem('contacts', JSON.stringify(updatedLocalContacts));
+      }
 
       // Update local state
       const updatedContacts = contacts.filter(contact => contact.id !== contactId);
       setContacts(updatedContacts);
-      
+
       toast({
         title: "Success",
         description: "Contact submission deleted",

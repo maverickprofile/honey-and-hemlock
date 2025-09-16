@@ -70,13 +70,13 @@ const FoundersSection = () => {
                   </a>
                   
                   {/* Bio Text - Hidden by default, shown on hover */}
-                  <p className={`font-special-elite text-sm leading-relaxed text-portfolio-white/90 transition-all duration-700 ease-out ${
-                    hoveredCard === index 
-                      ? 'opacity-100 transform translate-y-0 max-h-60 overflow-y-auto' 
+                  <div className={`font-special-elite text-sm leading-relaxed text-portfolio-white/90 transition-all duration-700 ease-out ${
+                    hoveredCard === index
+                      ? 'opacity-100 transform translate-y-0 max-h-60 overflow-y-auto custom-scrollbar'
                       : 'opacity-0 transform translate-y-4 max-h-0 overflow-hidden'
                   }`}>
                     {founder.bio}
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>

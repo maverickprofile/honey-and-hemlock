@@ -33,14 +33,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
+    // First check for stored admin or contractor session
+    const storedAdminSession = localStorage.getItem('admin_session');
+    const storedContractorSession = localStorage.getItem('contractor_session');
+
+    if (storedAdminSession) {
+      try {
+        const adminUser = JSON.parse(storedAdminSession);
+        setUser(adminUser);
+        setLoading(false);
+        return; // Exit early if we have a stored session
+      } catch (error) {
+        localStorage.removeItem('admin_session');
+      }
+    } else if (storedContractorSession) {
+      try {
+        const contractorUser = JSON.parse(storedContractorSession);
+        setUser(contractorUser);
+        setLoading(false);
+        return; // Exit early if we have a stored session
+      } catch (error) {
+        localStorage.removeItem('contractor_session');
+      }
+    }
+
+    // Set up auth state listener for Supabase auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         if (session?.user) {
           const authUser: AuthUser = {
             ...session.user,
-            role: session.user.user_metadata?.role || 
+            role: session.user.user_metadata?.role ||
                   (session.user.email === 'admin' || session.user.email === 'admin@honeyandhemlock.productions' ? 'admin' : undefined)
           };
           setUser(authUser);
@@ -51,13 +75,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Check for existing session
+    // Check for existing Supabase session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
         const authUser: AuthUser = {
           ...session.user,
-          role: session.user.user_metadata?.role || 
+          role: session.user.user_metadata?.role ||
                 (session.user.email === 'admin' || session.user.email === 'admin@honeyandhemlock.productions' ? 'admin' : undefined)
         };
         setUser(authUser);
@@ -220,31 +244,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.auth.signOut();
   };
 
-  // Check for stored admin or contractor session on app start
-  useEffect(() => {
-    const storedAdminSession = localStorage.getItem('admin_session');
-    const storedContractorSession = localStorage.getItem('contractor_session');
-    
-    if (storedAdminSession && !user) {
-      try {
-        const adminUser = JSON.parse(storedAdminSession);
-        setUser(adminUser);
-        setLoading(false);
-      } catch (error) {
-        localStorage.removeItem('admin_session');
-        setLoading(false);
-      }
-    } else if (storedContractorSession && !user) {
-      try {
-        const contractorUser = JSON.parse(storedContractorSession);
-        setUser(contractorUser);
-        setLoading(false);
-      } catch (error) {
-        localStorage.removeItem('contractor_session');
-        setLoading(false);
-      }
-    }
-  }, [user]);
 
   return (
     <AuthContext.Provider value={{

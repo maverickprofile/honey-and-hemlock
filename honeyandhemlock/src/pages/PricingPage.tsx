@@ -33,14 +33,10 @@ const pricingTiers: PricingTier[] = [
     id: 'tier1',
     name: 'Essential Review',
     price: 500,
-    description: 'Updated rubric scoring consisting of character analysis, structure evaluation, story and voice assessment, and more',
+    description: 'Professional script review with comprehensive rubric scoring and detailed feedback',
     features: [
-      'Updated rubric scoring system',
-      'Character analysis',
-      'Structure evaluation',
-      'Story and voice assessment',
-      '4-5 pages of detailed notes',
-      'Comprehensive feedback'
+      'Updated rubric scoring consisting of character analysis, structure, evaluation, story and voice assessment, and more',
+      '4 to 5 pages of detailed notes and comprehensive feedback'
     ]
   },
   {
@@ -49,32 +45,18 @@ const pricingTiers: PricingTier[] = [
     price: 750,
     description: 'Includes everything from Essential Review with expanded analysis and recommendations',
     features: [
-      'Everything from Essential Review',
-      '9-10 pages of detailed notes',
-      'Comprehensive feedback',
-      'In-depth character analysis',
-      'Detailed structure evaluation',
-      'Extended story and voice assessment',
-      'Strengthening recommendations',
-      'Tightening suggestions',
-      'Clarification guidance'
+      'Includes everything from Essential Review',
+      '9 to 10 pages of detailed notes and comprehensive feedback'
     ]
   },
   {
     id: 'tier3',
-    name: 'Premier Script Analysis',
+    name: 'Page-by-Page Review',
     price: 1000,
-    description: 'Includes everything from Comprehensive Analysis plus page-by-page script feedback',
+    description: 'Our most thorough analysis with page-by-page script feedback and production recommendations',
     features: [
-      'Everything from Comprehensive Analysis',
-      'Page-by-page script feedback',
-      'Dialogue clarity improvement',
-      'Financial recommendations for screenplay producibility',
-      'Pacing recommendations',
-      'Written notations directly on script',
-      'Scene cutting and condensation suggestions',
-      'Character change recommendations',
-      'Story insertion points'
+      'Includes everything from Comprehensive Analysis',
+      'Page by Page script feedback including but not limited to Dialogue clarity improvement, Financial recommendations for Screenplay Producibility, and Pacing recommendations'
     ]
   }
 ];

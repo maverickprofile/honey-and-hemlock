@@ -104,9 +104,6 @@ const FilmGallery = () => {
 
         {/* Image Gallery */}
         <div className="max-w-6xl mx-auto">
-          <h2 className="font-special-elite text-2xl sm:text-3xl font-semibold mb-6 text-center text-portfolio-gold">
-            Behind the Scenes
-          </h2>
           <ImageGallery images={film.images} title={film.title} />
         </div>
 

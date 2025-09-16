@@ -15,7 +15,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
     subject: '',
     message: ''
   });
@@ -41,28 +40,43 @@ const ContactForm: React.FC<ContactFormProps> = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
     
     try {
-      // Save to Supabase
-      const { data, error } = await supabase
-        .from('contacts')
-        .insert({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone || null,
-          subject: formData.subject || null,
-          message: formData.message,
-          status: 'new'
-        })
-        .select()
-        .single();
+      // Generate a unique ID for the contact
+      const contactId = Date.now();
+      const timestamp = new Date().toISOString();
 
-      if (error) throw error;
+      // Try to save to Supabase first
+      let supabaseSuccess = false;
+      let savedData = null;
 
-      // Also save to localStorage as backup
+      try {
+        const { data, error } = await supabase
+          .from('contacts')
+          .insert({
+            name: formData.name,
+            email: formData.email,
+            subject: formData.subject || null,
+            message: formData.message,
+            status: 'new',
+            created_at: timestamp
+          })
+          .select()
+          .single();
+
+        if (!error && data) {
+          supabaseSuccess = true;
+          savedData = data;
+        }
+      } catch (dbError) {
+        console.log('Database save failed, will use localStorage:', dbError);
+      }
+
+      // Always save to localStorage as primary/backup storage
       const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
       const newContact = {
         ...formData,
-        id: data.id,
-        created_at: data.created_at,
+        id: savedData?.id || contactId,
+        created_at: savedData?.created_at || timestamp,
+        date: timestamp,
         status: 'new'
       };
       contacts.push(newContact);
@@ -77,7 +91,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ isOpen, onClose }) => {
 
       // Reset form after success animation
       setTimeout(() => {
-        setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+        setFormData({ name: '', email: '', subject: '', message: '' });
         setTimeout(() => {
           onClose();
         }, 1000);
@@ -206,29 +220,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ isOpen, onClose }) => {
               />
             </div>
 
-            {/* Phone Field */}
-            <div className="space-y-2">
-              <label className={`block text-sm font-special-elite transition-all duration-300 ${
-                focusedField === 'phone' || formData.phone 
-                  ? 'text-portfolio-gold' 
-                  : 'text-portfolio-white/80'
-              }`}>
-                Phone
-              </label>
-              <Input
-                name="phone"
-                placeholder="(555) 123-4567"
-                value={formData.phone}
-                onChange={handleChange}
-                onFocus={() => setFocusedField('phone')}
-                onBlur={() => setFocusedField(null)}
-                className={`liquid-field h-12 transition-all duration-300 ${
-                  focusedField === 'phone' ? 'liquid-field-focus' : ''
-                }`}
-              />
-            </div>
-
-            {/* Subject Field */}
+{/* Subject Field */}
             <div className="space-y-2">
               <label className={`block text-sm font-special-elite transition-all duration-300 ${
                 focusedField === 'subject' || formData.subject 

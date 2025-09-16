@@ -32,13 +32,8 @@ const Clapperboard = () => (
 
 const AwardTrophy = () => (
   <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-    <path d="M6 9a9 9 0 0 0 12 0" />
-    <path d="M12 18v-9" />
-    <path d="M8 21h8" />
-    <path d="M12 21v-3" />
-    <circle cx="12" cy="6" r="3" />
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    <circle cx="12" cy="12" r="3" />
   </svg>
 );
 
@@ -46,7 +41,7 @@ const SkillsetSection = () => {
   const skills = [
     {
       icon: FilmReel,
-      title: "End to End Production",
+      title: "End-to-end Production",
       description: "Complete film production services"
     },
     {
@@ -84,12 +79,26 @@ const SkillsetSection = () => {
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 max-w-6xl mx-auto items-center">
           {/* Left Column - Skills Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:-ml-8">
             {skills.map((skill, index) => (
-              <div key={index} className="text-center p-8 group hover:bg-white/5 transition-all duration-300 rounded-lg">
-                <skill.icon className="w-12 h-12 text-portfolio-gold mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
-                <h3 className="font-special-elite text-xl font-semibold mb-2">{skill.title}</h3>
-                <p className="font-special-elite text-sm text-portfolio-white/80">{skill.description}</p>
+              <div key={index} className="flex flex-col items-center justify-start p-8 group hover:bg-white/5 transition-all duration-300 rounded-lg">
+                <div className="h-12 flex items-center justify-center mb-4">
+                  <skill.icon className="w-12 h-12 text-portfolio-gold group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <h3 className="font-special-elite text-xl font-semibold mb-2 text-center min-h-[3rem] flex items-center">
+                  {index === 0 ? (
+                    <div>
+                      <span className="whitespace-nowrap">End-to-end</span>
+                      <br />
+                      Production
+                    </div>
+                  ) : index === 2 ? (
+                    <span className="whitespace-nowrap">{skill.title}</span>
+                  ) : (
+                    skill.title
+                  )}
+                </h3>
+                <p className="font-special-elite text-sm text-portfolio-white/80 text-center">{skill.description}</p>
               </div>
             ))}
           </div>

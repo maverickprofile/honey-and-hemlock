@@ -30,7 +30,7 @@ import ProfileDropdown from '@/components/admin/ProfileDropdown';
 import SearchModal from '@/components/admin/SearchModal';
 
 const AdminDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -45,6 +45,9 @@ const AdminDashboard = () => {
   });
 
   useEffect(() => {
+    // Don't redirect while loading
+    if (loading) return;
+
     // Check if user is admin
     if (!user || (user.role !== 'admin' && !user.isAdmin)) {
       navigate('/admin');
@@ -52,7 +55,7 @@ const AdminDashboard = () => {
     }
 
     fetchDashboardData();
-  }, [user, navigate]);
+  }, [user, navigate, loading]);
 
   const fetchDashboardData = async () => {
     try {
@@ -309,6 +312,18 @@ const AdminDashboard = () => {
       </div>
     </div>
   );
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#232323] flex items-center justify-center">
+        <div className="text-portfolio-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-portfolio-gold mx-auto mb-4"></div>
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#232323] text-portfolio-white flex">

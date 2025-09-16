@@ -658,7 +658,7 @@ Honey & Hemlock Productions
 
       {/* Script Details Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl bg-portfolio-dark border-portfolio-gold text-portfolio-white">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto bg-portfolio-dark border-portfolio-gold text-portfolio-white">
           <DialogHeader>
             <DialogTitle className="text-portfolio-gold text-xl font-special-elite">
               Script Details
@@ -789,7 +789,7 @@ Honey & Hemlock Productions
                 <Button
                   variant="outline"
                   onClick={() => setIsViewDialogOpen(false)}
-                  className="border-portfolio-gold text-portfolio-gold hover:bg-portfolio-gold/10"
+                  className="border-portfolio-gold text-black hover:bg-portfolio-gold/10 hover:text-black"
                 >
                   Close
                 </Button>
