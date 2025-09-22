@@ -127,7 +127,7 @@ const Header = () => {
             <div className="flex-1 lg:flex-none text-center">
               <Link to="/" className="flex items-center justify-center">
                 <img
-                  src={location.pathname === '/script-portal' || location.pathname === '/pricing' || location.pathname === '/script-upload' ? "/Honey Writes-36.png" : "/lovable-uploads/64475ea2-91fd-4af8-b8e0-4131e1f8ec82.png"}
+                  src={location.pathname === '/script-portal' || location.pathname === '/pricing' || location.pathname === '/script-upload' ? "/Honey Writes-37.png" : "/lovable-uploads/64475ea2-91fd-4af8-b8e0-4131e1f8ec82.png"}
                   alt={location.pathname === '/script-portal' || location.pathname === '/pricing' || location.pathname === '/script-upload' ? "Honey Writes" : "Honey & Hemlock Productions"}
                   className="h-32 sm:h-40 md:h-60 lg:h-80 w-auto"
                 />

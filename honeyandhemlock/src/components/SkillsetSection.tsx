@@ -107,7 +107,7 @@ const SkillsetSection = () => {
           <div className="relative flex justify-center">
             <div className="w-full" style={{ maxWidth: '30rem' }}>
               <img
-                src="/H&H_work.png"
+                src="/H&H_work_updated.png"
                 alt="Our work showcase"
                 className="w-full h-auto object-contain rounded-lg shadow-2xl"
               />
