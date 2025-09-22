@@ -27,8 +27,9 @@ const isSafari = () => {
 };
 
 // Set up the worker for react-pdf with Safari compatibility
+// Use local worker file to avoid CDN blocking issues
 if (typeof window !== 'undefined' && 'Worker' in window) {
-  pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+  pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
 }
 
 interface PDFViewerProps {
@@ -426,7 +427,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
                       }}
                       title={`${scriptTitle} - Page ${pageNumber}`}
                       onLoad={() => setLoading(false)}
-                      sandbox="allow-same-origin allow-scripts allow-forms"
+                      sandbox="allow-same-origin allow-scripts allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox"
                     />
                   )}
                 </div>
