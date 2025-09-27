@@ -170,8 +170,8 @@ const ScriptReview = () => {
         return;
       }
 
-      // Set status to 'completed' when contractor submits the rubric, regardless of ratings
-      const recommendation = 'completed'; // Always mark as completed when rubric is submitted
+      // Set status to 'reviewed' to match what the admin dashboard expects
+      const recommendation = 'reviewed'; // Mark as reviewed when rubric is submitted
 
       // Compile all notes into feedback
       const feedback = [
@@ -212,10 +212,10 @@ const ScriptReview = () => {
 
         if (updateError) throw updateError;
 
-        // Update script status to 'completed'
+        // Update script status to 'reviewed' to match admin dashboard expectations
         const { error: scriptError } = await supabase
           .from('scripts')
-          .update({ status: 'completed' })
+          .update({ status: 'reviewed', reviewed_at: new Date().toISOString() })
           .eq('id', scriptId);
 
         if (scriptError) throw scriptError;

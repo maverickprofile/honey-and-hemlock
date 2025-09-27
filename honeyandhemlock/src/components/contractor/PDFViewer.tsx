@@ -16,14 +16,16 @@ const isIOSSafari = () => {
   const ua = window.navigator.userAgent;
   const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
   const webkit = !!ua.match(/WebKit/i);
-  const iOSSafari = iOS && webkit && !ua.match(/CriOS/i);
+  const iOSSafari = iOS && webkit && !ua.match(/CriOS/i) && !ua.match(/FxiOS/i);
   return iOSSafari;
 };
 
-// Detect any Safari browser
+// Detect any Safari browser (improved detection)
 const isSafari = () => {
-  const ua = window.navigator.userAgent;
-  return /^((?!chrome|android).)*safari/i.test(ua);
+  const ua = window.navigator.userAgent.toLowerCase();
+  const isSafariDesktop = ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1 && ua.indexOf('android') === -1;
+  const isIOSSaf = isIOSSafari();
+  return isSafariDesktop || isIOSSaf;
 };
 
 // Set up the worker for react-pdf with Safari compatibility
@@ -268,16 +270,40 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
 
   const downloadScript = async () => {
     try {
-      // Get a signed URL for download
-      const { data, error } = await supabase.storage
-        .from('scripts')
-        .createSignedUrl(fileUrl, 3600); // 1 hour expiry
+      // For Safari, open PDF directly in new tab without trying to force download
+      if (isSafari() || isIOSSafari()) {
+        window.open(pdfUrl, '_blank');
+        toast({
+          title: "PDF Opened",
+          description: "Your script has been opened in a new tab",
+        });
+        return;
+      }
 
-      if (error) throw error;
+      // For other browsers, try to get a signed URL if it's a Supabase URL
+      if (pdfUrl.includes('supabase.co/storage/')) {
+        // Extract the path from the public URL
+        const urlParts = pdfUrl.split('/storage/v1/object/public/');
+        if (urlParts.length > 1) {
+          const path = urlParts[1];
+          const { data, error } = await supabase.storage
+            .from('scripts')
+            .createSignedUrl(path.replace('scripts/', ''), 3600); // 1 hour expiry
 
-      // Open in new tab for download
-      window.open(data.signedUrl, '_blank');
-      
+          if (!error && data) {
+            window.open(data.signedUrl, '_blank');
+            toast({
+              title: "Download started",
+              description: "Your script is being downloaded",
+            });
+            return;
+          }
+        }
+      }
+
+      // Fallback - just open the URL
+      window.open(pdfUrl, '_blank');
+
       toast({
         title: "Download started",
         description: "Your script is being downloaded",
@@ -394,25 +420,17 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
               {useFallback ? (
                 <div className="w-full h-full flex flex-col">
                   {isMobile ? (
-                    // Mobile-optimized viewer
+                    // Mobile-optimized viewer - Always use Google Docs viewer for mobile Safari
                     <div className="w-full" style={{ height: '70vh' }}>
-                      {/* Try embedded object first for better mobile support */}
-                      <object
-                        data={`${pdfUrl}#view=FitH&scrollbar=1&toolbar=0&navpanes=0`}
-                        type="application/pdf"
-                        className="w-full h-full rounded-lg"
+                      <iframe
+                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`}
+                        className="w-full h-full border-0 rounded-lg"
                         style={{ backgroundColor: '#1a1a1a' }}
-                      >
-                        {/* Fallback to Google Docs viewer if object doesn't work */}
-                        <iframe
-                          src={`https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`}
-                          className="w-full h-full border-0 rounded-lg"
-                          style={{ backgroundColor: '#1a1a1a' }}
-                          title={scriptTitle}
-                          onLoad={() => setLoading(false)}
-                          allow="autoplay"
-                        />
-                      </object>
+                        title={scriptTitle}
+                        onLoad={() => setLoading(false)}
+                        allow="autoplay"
+                        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+                      />
                     </div>
                   ) : (
                     // Regular iframe for desktop Safari

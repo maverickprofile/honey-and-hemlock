@@ -159,7 +159,7 @@ const ContractorDashboard = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/');
+    navigate('/judge');
   };
 
 

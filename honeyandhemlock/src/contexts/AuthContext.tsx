@@ -242,6 +242,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Clear contractor session if it exists
     localStorage.removeItem('contractor_session');
     await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
   };
 
 

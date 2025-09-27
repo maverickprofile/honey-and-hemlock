@@ -1,11 +1,19 @@
 
 import React, { useState } from 'react';
-import { Upload, FileText } from 'lucide-react';
+import { Upload, FileText, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 interface PricingTier {
   id: string;
@@ -31,6 +39,12 @@ const ScriptSubmissionForm: React.FC<ScriptSubmissionFormProps> = ({
   const [authorEmail, setAuthorEmail] = useState('');
   const [authorPhone, setAuthorPhone] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [submittedTitle, setSubmittedTitle] = useState('');
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountPercentage, setDiscountPercentage] = useState(0);
+  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
+  const [discountApplied, setDiscountApplied] = useState(false);
   const { toast } = useToast();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,6 +75,46 @@ const ScriptSubmissionForm: React.FC<ScriptSubmissionFormProps> = ({
       
       setFile(selectedFile);
     }
+  };
+
+  // Predefined discount codes (in production, these would be in a database)
+  const DISCOUNT_CODES: { [key: string]: number } = {
+    'LAUNCH2024': 20, // 20% off
+    'EARLY50': 50, // 50% off
+    'FRIEND10': 10, // 10% off
+    'HONEY25': 25, // 25% off
+  };
+
+  const validateDiscountCode = () => {
+    setIsValidatingDiscount(true);
+
+    // Check if discount code is valid
+    const upperCode = discountCode.toUpperCase().trim();
+    if (DISCOUNT_CODES[upperCode]) {
+      setDiscountPercentage(DISCOUNT_CODES[upperCode]);
+      setDiscountApplied(true);
+      toast({
+        title: "Discount Applied!",
+        description: `${DISCOUNT_CODES[upperCode]}% discount has been applied to your order.`,
+      });
+    } else if (discountCode.trim() !== '') {
+      toast({
+        title: "Invalid Code",
+        description: "The discount code you entered is not valid.",
+        variant: "destructive",
+      });
+      setDiscountPercentage(0);
+      setDiscountApplied(false);
+    }
+
+    setIsValidatingDiscount(false);
+  };
+
+  const calculateDiscountedPrice = () => {
+    if (discountApplied && discountPercentage > 0) {
+      return selectedTier.price * (1 - discountPercentage / 100);
+    }
+    return selectedTier.price;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,40 +187,39 @@ const ScriptSubmissionForm: React.FC<ScriptSubmissionFormProps> = ({
           console.error('Script creation error:', scriptError);
           throw scriptError;
         }
-        
+
         console.log('Script created successfully (Test Mode for $1000 tier):', scriptData);
-        
-        // Show success message
-        toast({
-          title: "Script Uploaded Successfully!",
-          description: "Your script has been submitted for review.",
-        });
-        
+
+        // Show success dialog
+        setSubmittedTitle(title);
+        setShowSuccessDialog(true);
+
         // Clear form
         setTitle('');
         setAuthorName('');
         setAuthorEmail('');
         setAuthorPhone('');
         setFile(null);
-        
+
         // Clear selected tier from localStorage
         localStorage.removeItem('selectedTier');
-        
-        // Optionally navigate to a success page or reset the form
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 2000);
-        
+
         return;
       }
-      
+
+      // Apply discount if applicable
+      const finalPrice = calculateDiscountedPrice();
+
       // For paid tiers, proceed with Stripe payment
       const requestBody = {
         title,
         authorName,
         authorEmail,
         authorPhone,
-        amount: selectedTier.price * 100, // Convert to cents
+        amount: Math.round(finalPrice * 100), // Convert to cents with discount applied
+        originalAmount: selectedTier.price * 100, // Original price in cents
+        discountCode: discountApplied ? discountCode : null,
+        discountPercentage: discountApplied ? discountPercentage : 0,
         tierName: selectedTier.name,
         tierId: selectedTier.id,
         tierDescription: selectedTier.description,
@@ -192,9 +245,18 @@ const ScriptSubmissionForm: React.FC<ScriptSubmissionFormProps> = ({
           fileName: file.name,
           selectedTier: selectedTier
         }));
-        
-        // Redirect to Stripe checkout in the same window
-        window.location.href = data.url;
+
+        // Show success dialog before redirecting to payment
+        setSubmittedTitle(title);
+        toast({
+          title: "Processing Payment",
+          description: "Redirecting to secure payment page...",
+        });
+
+        // Redirect to Stripe checkout after a brief delay
+        setTimeout(() => {
+          window.location.href = data.url;
+        }, 1500);
       }
     } catch (error: any) {
       console.error('Error processing submission:', error);
@@ -217,7 +279,14 @@ const ScriptSubmissionForm: React.FC<ScriptSubmissionFormProps> = ({
     }
   };
 
+  const handleSuccessDialogClose = () => {
+    setShowSuccessDialog(false);
+    // Navigate to home after closing the dialog
+    window.location.href = '/';
+  };
+
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -288,6 +357,42 @@ const ScriptSubmissionForm: React.FC<ScriptSubmissionFormProps> = ({
         )}
       </div>
 
+      {/* Discount Code Section - Only show for paid tiers */}
+      {selectedTier.price > 0 && (
+        <div className="space-y-2">
+          <Label htmlFor="discountCode" className="text-portfolio-white">Discount Code (Optional)</Label>
+          <div className="flex gap-2">
+            <Input
+              id="discountCode"
+              value={discountCode}
+              onChange={(e) => {
+                setDiscountCode(e.target.value);
+                setDiscountApplied(false);
+                setDiscountPercentage(0);
+              }}
+              placeholder="Enter discount code"
+              className="bg-portfolio-black border-portfolio-gold/30 text-portfolio-white flex-1"
+            />
+            <Button
+              type="button"
+              onClick={validateDiscountCode}
+              disabled={isValidatingDiscount || !discountCode.trim()}
+              className="bg-portfolio-gold text-black hover:bg-portfolio-gold/90"
+            >
+              Apply
+            </Button>
+          </div>
+          {discountApplied && (
+            <div className="text-sm text-green-400">
+              ✓ Discount applied: {discountPercentage}% off
+              <div className="text-portfolio-white mt-1">
+                Original: ${selectedTier.price} → Final: ${calculateDiscountedPrice()}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <Button
         type="submit"
         className="w-full bg-portfolio-gold text-black hover:bg-portfolio-gold/90 text-lg py-3"
@@ -296,6 +401,35 @@ const ScriptSubmissionForm: React.FC<ScriptSubmissionFormProps> = ({
         {(selectedTier.price === 0 || selectedTier.price === 1000) ? 'Upload Script (Test Mode)' : 'Proceed to Payment'}
       </Button>
     </form>
+
+      {/* Success Confirmation Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="bg-portfolio-dark border-portfolio-gold/20 max-w-[90vw] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-portfolio-gold flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Submission Successful!
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="text-portfolio-white/90 text-base space-y-4">
+            <p>
+              Thank you for submitting your screenplay <span className="text-portfolio-gold font-semibold">'{submittedTitle}'</span> for feedback.
+            </p>
+            <p>
+              Our team of producers and screenplay professionals will provide feedback within 14 days of submission.
+            </p>
+          </DialogDescription>
+          <DialogFooter>
+            <Button
+              onClick={handleSuccessDialogClose}
+              className="w-full bg-portfolio-gold text-black hover:bg-portfolio-gold/90 font-semibold"
+            >
+              Continue to Homepage
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

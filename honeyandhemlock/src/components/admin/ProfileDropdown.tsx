@@ -22,7 +22,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onNavigateToSettings 
 
   const handleLogout = async () => {
     await logout();
-    navigate('/');
+    navigate('/admin');
   };
 
   const handleGoHome = () => {

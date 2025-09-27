@@ -115,13 +115,17 @@ const JudgeLogin = () => {
           </CardContent>
         </Card>
 
-        <div className="text-center">
-          <p className="text-portfolio-white/60 text-sm mb-4">
+        <div className="text-center space-y-4">
+          <p className="text-portfolio-white/60 text-sm">
             Need an account? <Link to="/contractor-signup" className="text-portfolio-gold hover:underline">Apply as Contractor</Link>
           </p>
-          <Link to="/" className="text-portfolio-gold hover:text-portfolio-white transition-colors">
-            ← Back to Home
-          </Link>
+          <Button
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="w-full bg-transparent text-portfolio-gold border-2 border-portfolio-gold hover:bg-portfolio-gold hover:text-black font-semibold transition-all duration-300"
+          >
+            ← Back to Home Page
+          </Button>
         </div>
       </div>
     </div>

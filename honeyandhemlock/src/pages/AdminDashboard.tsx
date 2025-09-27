@@ -19,7 +19,8 @@ import {
   DollarSign,
   Mail,
   Menu,
-  X
+  X,
+  Tag
 } from 'lucide-react';
 
 // Import the new sections
@@ -27,6 +28,7 @@ import ContractorsSection from '@/components/admin/ContractorsSectionSimple'; //
 import ScriptsSection from '@/components/admin/ScriptsSection';
 import SettingsSection from '@/components/admin/SettingsSection';
 import ContactsSection from '@/components/admin/ContactsSection';
+import DiscountCodesSection from '@/components/admin/DiscountCodesSection';
 import NotificationsDropdown from '@/components/admin/NotificationsDropdown';
 import ProfileDropdown from '@/components/admin/ProfileDropdown';
 import SearchModal from '@/components/admin/SearchModal';
@@ -143,7 +145,7 @@ const AdminDashboard = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/admin');
   };
 
   const getActivityIcon = (type: string) => {
@@ -366,6 +368,7 @@ const AdminDashboard = () => {
               { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
               { id: 'contractors', label: 'Contractors', icon: User },
               { id: 'scripts', label: 'Scripts', icon: FileText },
+              { id: 'discounts', label: 'Discount Codes', icon: Tag },
               { id: 'contacts', label: 'Contacts', icon: Mail },
               { id: 'settings', label: 'Settings', icon: Settings }
             ].map((item) => (
@@ -432,6 +435,7 @@ const AdminDashboard = () => {
           {activeTab === 'dashboard' && renderDashboard()}
           {activeTab === 'contractors' && <ContractorsSection />}
           {activeTab === 'scripts' && <ScriptsSection />}
+          {activeTab === 'discounts' && <DiscountCodesSection />}
           {activeTab === 'contacts' && <ContactsSection />}
           {activeTab === 'settings' && <SettingsSection />}
         </main>
